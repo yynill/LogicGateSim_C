@@ -78,16 +78,13 @@ RenderContext *init_renderer()
     // Enable font hinting for better rendering
     TTF_SetFontHinting(context->font, TTF_HINTING_LIGHT);
 
-    // Load circle texture
-    // context->circle_texture = IMG_LoadTexture(context->renderer, "assets/images/circle.png");
-
     return context;
 }
 
 void clear_screen(RenderContext *context)
 {
     assert(context != NULL);
-    SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(context->renderer, 50, 50, 50, 255);
     SDL_RenderClear(context->renderer);
 }
 
@@ -136,11 +133,58 @@ void render_text(RenderContext *context, const char *text, int x, int y, SDL_Col
     SDL_FreeSurface(surface);
 }
 
+void render_img(RenderContext *context, const char *path, SDL_Rect *rect)
+{
+    SDL_Surface *surface = IMG_Load(path);
+    if (!surface)
+    {
+        printf("Failed to load image %s! SDL_image Error: %s\n", path, IMG_GetError());
+        return;
+    }
+
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(context->renderer, surface);
+    if (!texture)
+    {
+        printf("Failed to create texture! SDL_Error: %s\n", SDL_GetError());
+        SDL_FreeSurface(surface);
+        return;
+    }
+
+    SDL_RenderCopy(context->renderer, texture, NULL, rect);
+
+    SDL_DestroyTexture(texture);
+    SDL_FreeSurface(surface);
+}
+
 void render_top_bar(RenderContext *context)
 {
     SDL_SetRenderDrawColor(context->renderer, 40, 40, 40, 255); // Dark gray background
     SDL_Rect top_bar = {0, 0, WINDOW_WIDTH, TOP_BAR_HEIGHT};
     SDL_RenderFillRect(context->renderer, &top_bar);
+}
+
+void render_button(RenderContext *context, Button *button)
+{
+    // Draw button hit box
+    SDL_SetRenderDrawColor(context->renderer, 200, 200, 200, 255);
+    SDL_RenderDrawRect(context->renderer, &button->rect);
+
+    render_img(context, button->path, &button->rect);
+}
+
+void render_node(RenderContext *context, Node *node)
+{
+    SDL_Rect node_rect = node->rect;
+
+    // Draw node background
+    SDL_SetRenderDrawColor(context->renderer, 60, 60, 60, 255);
+    SDL_RenderFillRect(context->renderer, &node_rect);
+
+    // Draw node border
+    SDL_SetRenderDrawColor(context->renderer, 200, 200, 200, 255);
+    SDL_RenderDrawRect(context->renderer, &node_rect);
+
+    render_img(context, node->path, &node_rect);
 }
 
 void render(RenderContext *context, SimulationState *sim_state)
@@ -150,6 +194,20 @@ void render(RenderContext *context, SimulationState *sim_state)
 
     clear_screen(context);
     render_top_bar(context);
-    render_text(context, "Hello, World!", 10, 10, (SDL_Color){255, 255, 255, 255}); // White text on dark background
+
+    // Render all buttons
+    for (int i = 0; i < sim_state->buttons->size; i++)
+    {
+        Button *button = array_get(sim_state->buttons, i);
+        render_button(context, button);
+    }
+
+    // Render all nodes
+    for (int i = 0; i < sim_state->nodes->size; i++)
+    {
+        Node *node = array_get(sim_state->nodes, i);
+        render_node(context, node);
+    }
+
     present_screen(context);
 }

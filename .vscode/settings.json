@@ -1,6 +1,7 @@
 {
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
-        "string.h": "c"
+        "string.h": "c",
+        "__node_handle": "c"
     }
 }
