@@ -1,6 +1,8 @@
 #include "simulation.h"
 #include "main.h"
 #include <stdio.h>
+#include <string.h>
+#include "DynamicArray.h"
 
 SimulationState *simulation_init(void)
 {
@@ -10,15 +12,14 @@ SimulationState *simulation_init(void)
 
     state->is_running = 1;
 
+    state->nodes = array_create(16, sizeof(Node));
+    state->connections = array_create(16, sizeof(Connection));
+
     // Initialize input state
-    state->input.up = 0;
-    state->input.down = 0;
-    state->input.left = 0;
-    state->input.right = 0;
-    state->input.a = 0;
-    state->input.b = 0;
-    state->input.start = 0;
-    state->input.select = 0;
+    state->input.mouse_down = 0;
+    state->input.mouse_up = 0;
+    state->input.mouse_x = 0;
+    state->input.mouse_y = 0;
 
     return state;
 }
@@ -27,6 +28,8 @@ void simulation_cleanup(SimulationState *state)
 {
     if (state)
     {
+        array_free(state->nodes);
+        array_free(state->connections);
         free(state);
     }
 }
@@ -39,46 +42,48 @@ void simulation_handle_input(SimulationState *state, SDL_Event *event)
         state->is_running = 0;
         break;
 
+    case SDL_MOUSEMOTION:
+        state->input.mouse_x = event->motion.x;
+        state->input.mouse_y = event->motion.y;
+        break;
+
+    case SDL_MOUSEBUTTONDOWN:
+        state->input.mouse_down = 1;
+        state->input.mouse_x = event->button.x;
+        state->input.mouse_y = event->button.y;
+        break;
+
+    case SDL_MOUSEBUTTONUP:
+        state->input.mouse_down = 0;
+        state->input.mouse_x = event->button.x;
+        state->input.mouse_y = event->button.y;
+        break;
+
     case SDL_KEYDOWN:
     case SDL_KEYUP:
     {
-        int is_pressed = (event->type == SDL_KEYDOWN);
         switch (event->key.keysym.sym)
         {
         case SDLK_ESCAPE:
             state->is_running = 0;
             break;
-        case KEY_UP:
-            state->input.up = is_pressed;
-            break;
-        case KEY_DOWN:
-            state->input.down = is_pressed;
-            break;
-        case KEY_LEFT:
-            state->input.left = is_pressed;
-            break;
-        case KEY_RIGHT:
-            state->input.right = is_pressed;
-            break;
-        case KEY_A:
-            state->input.a = is_pressed;
-            break;
-        case KEY_B:
-            state->input.b = is_pressed;
-            break;
-        case KEY_START:
-            state->input.start = is_pressed;
-            break;
-        case KEY_SELECT:
-            state->input.select = is_pressed;
-            break;
         }
+        break;
     }
-    break;
     }
 }
 
 void simulation_update(SimulationState *state)
 {
-    // Update logic will be handled by the renderer
+    if (state->input.mouse_down)
+    {
+        Node node = {
+            .inputs = {0, 0},
+            .outputs = {0, 0},
+            .operation = nullGate,
+        };
+        array_add(state->nodes, &node);
+        state->input.mouse_down = 0;
+        printf("Number of nodes: %d\n", state->nodes->size);
+    }
 }
