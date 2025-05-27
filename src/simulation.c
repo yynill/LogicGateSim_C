@@ -1,5 +1,5 @@
 #include "simulation.h"
-#include "../main.h"
+#include "main.h"
 #include <stdio.h>
 
 SimulationState *simulation_init(void)

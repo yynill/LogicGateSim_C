@@ -2,7 +2,7 @@
 #define MAIN_H
 
 // Window configuration
-#define WINDOW_TITLE "GameBoy Emulator"
+#define WINDOW_TITLE "Logic Gate Sim"
 
 #define TOP_BAR_HEIGHT 50
 #define SCALE_FACTOR 5

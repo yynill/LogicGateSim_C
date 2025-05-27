@@ -21,6 +21,27 @@ typedef struct SimulationState
     } input;
 } SimulationState;
 
+typedef int (*Operation)(int, int);
+
+typedef struct Node {
+    int[2] inputs;
+    int[2] outputs;
+    Operation operation;
+} Node;
+
+typedef struct Connection {
+    Node* from;
+    Node* to;
+} Connection;
+
+
+// operations
+int andGate(int a, int b) { return a && b; }
+int orGate(int a, int b) { return a || b; }
+int norGate(int a, int b) { return !(a || b); }
+int nandGate(int a, int b) { return !(a && b); }
+int notGate(int a, int b) { (void)b; return !a; } // discards b, only uses a
+
 // Function declarations
 SimulationState *simulation_init(void);
 void simulation_cleanup(SimulationState *state);

@@ -17,8 +17,8 @@ LDFLAGS = -L/opt/homebrew/opt/sdl2/lib -L/opt/homebrew/opt/sdl2_ttf/lib -L/opt/h
 
 # Main program configuration
 MAIN_SRC = src/main.c \
-           src/simulation/simulation.c \
-           src/rendering/renderer.c
+           src/simulation.c \
+           src/renderer.c
 
 MAIN_OBJ = $(MAIN_SRC:.c=.o)
 MAIN_TARGET = main

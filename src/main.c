@@ -1,5 +1,5 @@
-#include "simulation/simulation.h"
-#include "rendering/renderer.h"
+#include "simulation.h"
+#include "renderer.h"
 #include "main.h"
 #include <stdio.h>
 
