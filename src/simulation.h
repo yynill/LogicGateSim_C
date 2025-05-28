@@ -4,31 +4,6 @@
 #include <SDL2/SDL.h>
 #include "DynamicArray.h"
 
-typedef struct SimulationState
-{
-    int is_running;
-    DynamicArray *nodes;
-    DynamicArray *connections;
-    DynamicArray *buttons;
-
-    // Input state
-    struct
-    {
-        int mouse_down;
-        int mouse_up;
-        int mouse_x;
-        int mouse_y;
-    } input;
-} SimulationState;
-
-typedef struct Button
-{
-    SDL_Rect rect;
-    const char *path;
-    void *function_data;                                           // data for the func
-    void (*on_press)(SimulationState *state, void *function_data); // Function pointer for button press action
-} Button;
-
 // operations
 typedef int (*Operation)(int, int);
 
@@ -48,7 +23,40 @@ typedef struct Node
     Operation operation;
     const char *path;
     SDL_Rect rect;
-} Node;
+} Node;    
+
+typedef struct SimulationState
+{
+    int is_running;
+    DynamicArray *nodes;
+    DynamicArray *connections;
+    DynamicArray *buttons;
+
+    // Input state
+    struct
+    {
+        int mouse_down;
+        int mouse_up;
+        int mouse_x;
+        int mouse_y;
+
+        int is_dragging;
+        int drag_offset_x;
+        int drag_offset_y;
+    } input;    
+    Node *dragged_node;
+} SimulationState;    
+
+typedef struct Button
+{
+    SDL_Rect rect;
+    const char *path;
+    void *function_data;                                           // data for the func
+    void (*on_press)(SimulationState *state, void *function_data); // Function pointer for button press action
+} Button;    
+
+#define NODE_WIDTH 52
+#define NODE_HEIGHT 24
 
 typedef struct Connection
 {
@@ -62,5 +70,6 @@ void simulation_cleanup(SimulationState *state);
 void simulation_update(SimulationState *state);
 void simulation_handle_input(SimulationState *state, SDL_Event *event);
 void add_node(SimulationState *state, void *function_data);
+void check_click_pos(SimulationState *state);
 
 #endif // SIMULATION_H

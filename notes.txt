@@ -1,111 +1,12 @@
-📄 notes.txt — Game Boy Emulator Project Outline
-==================================================
-
-🎯 GOAL:
-Build a Game Boy emulator in C with clean, assert-heavy, debuggable, modular code.
-
---------------------------------------------------
-📝 CODING PRACTICES:
-- Use assertions for all function parameters, memory accesses, return values.
-- Run with address sanitizer.
-- Use memory leak checker (valgrind).
-- Break code into small, testable functions. (60 lines)
-- functions must return something (no void) to validate with assertions
-- Comment every non-obvious block. No magic numbers. Define them.
-
-- Memory management: track allocations, frees, watch out for leaks.
-- Log erroros and sates
-
---------------------------------------------------
-📦 PROJECT STRUCTURE:
-.
-├── src/
-│   ├── main.c
-│   ├── cpu.c / cpu.h
-│   ├── memory.c / memory.h
-│   ├── gpu.c / gpu.h
-│   ├── input.c / input.h
-│   ├── audio.c / audio.h (optional)
-│   ├── rom.c / rom.h
-│   └── utils.c / utils.h
-├── include/
-│   └── common.h
-├── res/
-│   └── test_rom.gb
-├── Makefile
-├── debug.log
-└── notes.txt
-
---------------------------------------------------
-🛠️ TASK LIST:
-
-build logging and assrtison logic 
-sdl2 implementation 
-makefile ? 
+✅ node dragging bug 
+✅  render dragged nod differently, maybe z index and outline or something. or make bigger. 
+📋 implement cables 
+📋 render cables simple
+📋 render cables nice with snapping and corners and such
 
 
 
-[ ] SETUP:
-    [ ] Makefile with warnings and sanitizers (-Wall -Wextra -pedantic -fsanitize=address)
-    [ ] SDL2 setup for graphics and input
 
-[ ] MEMORY:
-    [ ] Implement 64KB memory map array
-    [ ] Define memory regions (ROM, VRAM, WRAM, etc.)
-    [ ] Load ROM into memory at correct address
-    [ ] Assertions for valid memory reads/writes
-    [ ] Logging for invalid access
-
-[ ] CPU:
-    [ ] Define CPU registers struct (AF, BC, DE, HL, SP, PC)
-    [ ] Define flags (Z, N, H, C)
-    [ ] Create CPU cycle function: fetch → decode → execute
-    [ ] Implement a few basic opcodes (NOP, LD, INC, DEC)
-    [ ] Assertions on each opcode execution: valid opcode, correct flag changes
-    [ ] Build opcode table array of function pointers
-
-[ ] GPU:
-    [ ] Implement basic LCD control registers
-    [ ] Create a 160x144 framebuffer array
-    [ ] Implement background rendering (tilemap rendering)
-    [ ] Render to SDL window
-    [ ] Add scanline / vsync emulation (basic)
-
-[ ] INPUT:
-    [ ] Map keyboard keys to joypad buttons
-    [ ] Implement joypad register mapping
-    [ ] Read input state into memory-mapped IO
-
-[ ] DEBUGGING:
-    [ ] Create log system (debug.log)
-    [ ] Log CPU state on each instruction
-    [ ] Log memory writes / reads
-    [ ] Build CLI debug commands: dump memory, set breakpoints
-
-[ ] TEST ROM:
-    [ ] Load and run Blargg's test ROMs for CPU instruction verification
-    [ ] Log test progress and results
-
-[ ] THREADING (Optional):
-    [ ] Move rendering and emulation loop to separate threads
-    [ ] Assertions for thread safety
-    [ ] Mutexes for shared state (input, framebuffer)
-
-[ ] MEMORY CAP:
-    [ ] Track dynamic memory usage
-    [ ] Enforce hard limit (e.g., 100KB if possible)
-    [ ] Assertions on malloc/calloc failure or over-capacity
-
-[ ] PREPROCESSOR / MACROS:
-    [ ] Create macros for common assertions and logs
-        e.g., #define ASSERT_OK(x) assert(x != NULL)
-    [ ] Use macros for opcode table generation if needed
-
-[ ] AUDIO (Optional):
-    [ ] Implement square wave generators
-    [ ] Map audio registers
-    [ ] Connect to SDL audio callback
-
-[ ] SAVE STATES (Optional):
-    [ ] Serialize CPU, memory, GPU state to file
-    [ ] Load from save file
+####################################
+## ✅ completed - 🐞 bug - 📋 todo ##
+####################################

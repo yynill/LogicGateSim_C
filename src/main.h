@@ -4,7 +4,7 @@
 // Window configuration
 #define WINDOW_TITLE "Logic Gate Sim"
 
-#define TOP_BAR_HEIGHT 50
+#define TOP_BAR_HEIGHT 46
 #define SCALE_FACTOR 5
 
 #define WINDOW_WIDTH (160 * SCALE_FACTOR)
