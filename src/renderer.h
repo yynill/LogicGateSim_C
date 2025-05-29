@@ -6,6 +6,19 @@
 #include <SDL2/SDL_ttf.h>
 #include "simulation.h"
 
+#define TOP_BAR_HEIGHT 48
+
+#define WINDOW_WIDTH 1000
+#define WINDOW_HEIGHT ((800) + TOP_BAR_HEIGHT) 
+
+#define NODE_WIDTH 78
+#define NODE_HEIGHT 36
+#define PIN_SIZE 10
+
+#define BUTTON_WIDTH 48
+#define BUTTON_HEIGHT 32
+
+
 typedef struct
 {
     SDL_Window *window;

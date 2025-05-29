@@ -3,28 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include "DynamicArray.h"
-
-// operations
-typedef int (*Operation)(int, int);
-
-static inline int nullGate(int a, int b) { (void)a; (void)b; return 0; } // always returns 0
-static inline int light_output(int a, int b) {(void)b; return a; }       // discards b, only uses a
-static inline int andGate(int a, int b) { return a && b; }
-static inline int orGate(int a, int b) { return a || b; }
-static inline int notGate(int a, int b) { (void)b; return !a; }          // discards b, only uses a
-static inline int norGate(int a, int b) { return !(a || b); }
-static inline int nandGate(int a, int b) { return !(a && b); }
-// static inline int xorGate(int a, int b) { return a != b; }
-// static inline int xnorGate(int a, int b) { return a == b; }
-
-typedef struct Node
-{
-    int inputs[2];
-    int outputs[2];
-    Operation operation;
-    const char *path;
-    SDL_Rect rect;
-} Node;    
+#include "node.h"
 
 typedef struct SimulationState
 {
@@ -54,19 +33,10 @@ typedef struct SimulationState
 typedef struct Button
 {
     SDL_Rect rect;
-    const char *path;
+    const char *name;
     void *function_data;                                           // data for the func
     void (*on_press)(SimulationState *state, void *function_data); // Function pointer for button press action
 } Button;    
-
-#define NODE_WIDTH 52
-#define NODE_HEIGHT 24
-
-typedef struct Connection
-{
-    Node *from;
-    Node *to;
-} Connection;
 
 // Function declarations
 SimulationState *simulation_init(void);

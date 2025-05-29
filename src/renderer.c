@@ -78,6 +78,19 @@ RenderContext *init_renderer()
     // Enable font hinting for better rendering
     TTF_SetFontHinting(context->font, TTF_HINTING_LIGHT);
 
+    // Load circle texture
+    context->circle_texture = IMG_LoadTexture(context->renderer, "assets/images/circle.png");
+    if (!context->circle_texture)
+    {
+        printf("Failed to load circle texture! IMG_Error: %s\n", IMG_GetError());
+        SDL_DestroyRenderer(context->renderer);
+        SDL_DestroyWindow(context->window);
+        free(context);
+        TTF_Quit();
+        SDL_Quit();
+        return NULL;
+    }
+
     // Critical initialization checks
     assert(context->window != NULL && "Window must be created");
     assert(context->renderer != NULL && "Renderer must be created");
@@ -140,34 +153,6 @@ void render_text(RenderContext *context, const char *text, int x, int y, SDL_Col
     SDL_FreeSurface(surface);
 }
 
-void render_img(RenderContext *context, const char *path, SDL_Rect *rect)
-{
-    assert(context != NULL);
-    assert(path != NULL);
-    assert(rect != NULL);
-    assert(rect->w > 0 && rect->h > 0 && "Image dimensions must be positive");
-
-    SDL_Surface *surface = IMG_Load(path);
-    if (!surface)
-    {
-        printf("Failed to load image %s! SDL_image Error: %s\n", path, IMG_GetError());
-        return;
-    }
-
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(context->renderer, surface);
-    if (!texture)
-    {
-        printf("Failed to create texture! SDL_Error: %s\n", SDL_GetError());
-        SDL_FreeSurface(surface);
-        return;
-    }
-
-    SDL_RenderCopy(context->renderer, texture, NULL, rect);
-
-    SDL_DestroyTexture(texture);
-    SDL_FreeSurface(surface);
-}
-
 void render_top_bar(RenderContext *context)
 {
     assert(context != NULL);
@@ -176,15 +161,29 @@ void render_top_bar(RenderContext *context)
     SDL_RenderFillRect(context->renderer, &top_bar);
 }
 
-void render_button(RenderContext *context, SimulationState *sim_state, Button *button)
+void render_button(RenderContext *context, Button *button)
 {
     assert(context != NULL);
     assert(button != NULL);
-    assert(button->path != NULL && "Button must have a valid image path");
+    assert(button->name != NULL && "Button must have a valid image path");
     assert(button->rect.w > 0 && button->rect.h > 0 && "Button dimensions must be positive");
- 
-    if (!sim_state->connection_mode || !(strncmp(button->path, "assets/images/cable.png",  23))) {
-        render_img(context, button->path, &button->rect);
+
+    SDL_SetRenderDrawColor(context->renderer, 20, 20, 20, 255);
+    SDL_RenderFillRect(context->renderer, &button->rect);
+
+    SDL_Color text_color = {255, 255, 255, 255};
+
+    int text_width, text_height;
+    if (TTF_SizeText(context->font, button->name, &text_width, &text_height) == 0)
+    {
+        int text_x = button->rect.x + (button->rect.w - text_width) / 2;
+        int text_y = button->rect.y + (button->rect.h - text_height) / 2;
+
+        render_text(context, button->name, text_x, text_y, text_color);
+    }
+    else
+    {
+        render_text(context, button->name, button->rect.x, button->rect.y, text_color);
     }
 }
 
@@ -200,7 +199,9 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         node_rect.y -= 2;
         node_rect.w += 4;
         node_rect.h += 4;
+        // todo: move each pin for zooom 
     }
+
 
     if (sim_state->first_connection_node != NULL && sim_state->first_connection_node == node)
     {
@@ -208,7 +209,43 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         SDL_RenderDrawRect(context->renderer, &node_rect);
     }
 
-    render_img(context, node->path, &node_rect);
+    // Render node body
+    SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, 255);
+    SDL_RenderFillRect(context->renderer, &node_rect);
+
+    // Render input pins
+    SDL_SetTextureColorMod(context->circle_texture, 0, 0, 0);
+    SDL_SetTextureAlphaMod(context->circle_texture, 255);
+
+    int num_inputs = node->inputs->size;
+    for (int i = 0; i < num_inputs; i++)
+    {
+        Pin *pin = array_get(node->inputs, i);
+
+        SDL_Rect pin_rect = {
+            .x = node_rect.x + pin->x,
+            .y = node_rect.y + pin->y,
+            .w = PIN_SIZE,
+            .h = PIN_SIZE
+        };
+
+        SDL_RenderCopy(context->renderer, context->circle_texture, NULL, &pin_rect);
+    }
+
+    // Render output pins
+    int num_outputs = node->outputs->size;
+    for (int i = 0; i < num_outputs; i++)
+    {
+        Pin *pin = array_get(node->outputs, i);
+
+        SDL_Rect pin_rect = {
+            .x = node_rect.x + pin->x,
+            .y = node_rect.y + pin->y,
+            .w = PIN_SIZE ,
+            .h = PIN_SIZE
+        };
+        SDL_RenderCopy(context->renderer, context->circle_texture, NULL, &pin_rect);
+    }
 }
 
 void render_connection(RenderContext *context, Connection *con) {
@@ -244,7 +281,7 @@ void render(RenderContext *context, SimulationState *sim_state)
     {
         Button *button = array_get(sim_state->buttons, i);
         assert(button != NULL && "Button must not be NULL");
-        render_button(context, sim_state, button);
+        render_button(context, button);
     }
 
     // Rednder Connections

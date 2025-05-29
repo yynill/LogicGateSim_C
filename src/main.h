@@ -4,12 +4,6 @@
 // Window configuration
 #define WINDOW_TITLE "Logic Gate Sim"
 
-#define TOP_BAR_HEIGHT 46
-#define SCALE_FACTOR 5
-
-#define WINDOW_WIDTH (160 * SCALE_FACTOR)
-#define WINDOW_HEIGHT (144 * SCALE_FACTOR) + TOP_BAR_HEIGHT
-
 // Timing configuration
 #define TARGET_FPS 60
 #define FRAME_DELAY (1000 / TARGET_FPS) // Delay in milliseconds

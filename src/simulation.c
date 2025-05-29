@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "DynamicArray.h"
+#include "renderer.h"
 #include <assert.h>
 
 SimulationState *simulation_init(void) {
@@ -22,56 +23,56 @@ SimulationState *simulation_init(void) {
     assert(state->buttons != NULL && "Failed to create buttons array");
 
     Button add_node_button = {
-        .rect = {10, 10, NODE_WIDTH, NODE_HEIGHT},
-        .path = "assets/images/and.png",
+        .rect = {10, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
+        .name = "AND",
         .function_data = andGate,
         .on_press = add_node,
     };
     array_add(state->buttons, &add_node_button);
 
     Button or_node_button = {
-        .rect = {80, 10, NODE_WIDTH, NODE_HEIGHT},
-        .path = "assets/images/or.png",
+        .rect = {80, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
+        .name = "OR",
         .function_data = orGate,
         .on_press = add_node,
     };
     array_add(state->buttons, &or_node_button);
 
     Button not_node_button = {
-        .rect = {150, 10, NODE_WIDTH, NODE_HEIGHT},
-        .path = "assets/images/not.png",
+        .rect = {150, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
+        .name = "NOT",
         .function_data = notGate,
         .on_press = add_node,
     };
     array_add(state->buttons, &not_node_button);
 
     Button nor_node_button = {
-        .rect = {220, 10, NODE_WIDTH, NODE_HEIGHT},
-        .path = "assets/images/nor.png",
+        .rect = {220, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
+        .name = "NOR",
         .function_data = norGate,
         .on_press = add_node,
     };
     array_add(state->buttons, &nor_node_button);
 
     Button nand_node_button = {
-        .rect = {290, 10, NODE_WIDTH, NODE_HEIGHT},
-        .path = "assets/images/nand.png",
+        .rect = {290, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
+        .name = "NAND",
         .function_data = nandGate,
         .on_press = add_node,
     };
     array_add(state->buttons, &nand_node_button);
 
     Button light_button = {
-        .rect = {380, 10, NODE_WIDTH, NODE_HEIGHT},
-        .path = "assets/images/light_on.png",
+        .rect = {380, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
+        .name = "LIGHT",
         .function_data = light_output,
         .on_press = add_node,
     };
     array_add(state->buttons, &light_button);
 
     Button switch_button = {
-        .rect = {450, 10, NODE_WIDTH, NODE_HEIGHT},
-        .path = "assets/images/switch_off.png",
+        .rect = {450, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
+        .name = "SWITCH",
         .function_data = light_output,
         .on_press = add_node,
     };
@@ -79,7 +80,7 @@ SimulationState *simulation_init(void) {
 
     Button connection_button = {
         .rect = {WINDOW_WIDTH - 50, 10, 30, 30},
-        .path = "assets/images/cable.png",
+        .name = "CABLE",
         .function_data = nandGate,
         .on_press = connection_mode,
     };
@@ -191,21 +192,10 @@ void add_node(SimulationState *state, void *function_data) {
 
     Button *button = (Button *)function_data;
     Operation op = *(Operation *)button->function_data;
+    SDL_Rect node_rect = {.x = 100, .y = 100, .w = NODE_WIDTH, .h = NODE_HEIGHT};
 
-    SDL_Rect node_rect = {
-        .x = 100,
-        .y = 100,
-        .w = NODE_WIDTH,
-        .h = NODE_HEIGHT};
-
-    Node node = {
-        .inputs = {0, 0},
-        .outputs = {0, 0},
-        .operation = op,
-        .path = button->path,
-        .rect = node_rect,
-    };
-    array_add(state->nodes, &node);
+    Node *node = create_node(2, 1, op, node_rect, button->name);
+    array_add(state->nodes, node);
 
     assert(state->nodes->size > 0 && "Node should be added to array");
 }

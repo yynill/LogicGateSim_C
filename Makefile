@@ -19,7 +19,8 @@ LDFLAGS = -L/opt/homebrew/opt/sdl2/lib -L/opt/homebrew/opt/sdl2_ttf/lib -L/opt/h
 MAIN_SRC = src/main.c \
            src/simulation.c \
            src/renderer.c \
-		   src/DynamicArray.c
+		   src/DynamicArray.c \
+		   src/node.c
 
 MAIN_OBJ = $(MAIN_SRC:.c=.o)
 MAIN_TARGET = main
