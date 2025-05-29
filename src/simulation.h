@@ -8,9 +8,10 @@
 typedef int (*Operation)(int, int);
 
 static inline int nullGate(int a, int b) { (void)a; (void)b; return 0; } // always returns 0
+static inline int light_output(int a, int b) {(void)b; return a; }       // discards b, only uses a
 static inline int andGate(int a, int b) { return a && b; }
 static inline int orGate(int a, int b) { return a || b; }
-static inline int notGate(int a, int b) { (void)b; return !a; } // discards b, only uses a
+static inline int notGate(int a, int b) { (void)b; return !a; }          // discards b, only uses a
 static inline int norGate(int a, int b) { return !(a || b); }
 static inline int nandGate(int a, int b) { return !(a && b); }
 // static inline int xorGate(int a, int b) { return a != b; }
@@ -45,6 +46,9 @@ typedef struct SimulationState
         int drag_offset_y;
     } input;    
     Node *dragged_node;
+    
+    int connection_mode;
+    Node *first_connection_node;
 } SimulationState;    
 
 typedef struct Button
@@ -71,5 +75,6 @@ void simulation_update(SimulationState *state);
 void simulation_handle_input(SimulationState *state, SDL_Event *event);
 void add_node(SimulationState *state, void *function_data);
 void check_click_pos(SimulationState *state);
+void connection_mode(SimulationState *state, void *function_data);
 
 #endif // SIMULATION_H

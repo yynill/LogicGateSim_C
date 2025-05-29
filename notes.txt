@@ -1,9 +1,21 @@
 ✅ node dragging bug 
-✅  render dragged nod differently, maybe z index and outline or something. or make bigger. 
+✅ render dragged nod differently, maybe z index and outline or something. or make bigger. 
+📋 add inputs and ouputs
 📋 implement cables 
-📋 render cables simple
-📋 render cables nice with snapping and corners and such
+✅ render cables simple
 
+🐞 think about how to connect inputs to outputs - connections wont cut it. probably something like: input of b node is pointer t ouptut of a node 
+    in this way i can also connect nodes to themselves
+
+📋 implement logic gate logic 
+📋 visually show logic
+📋 cut cables with right click knive would be cool or something
+📋 render cables nice with snapping and corners and such
+📋 select multiple 
+📋 copy paste multiple
+📋 delete nodes 
+📋 zoom  
+📋 middle mouse scroll around  
 
 
 

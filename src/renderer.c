@@ -86,10 +86,11 @@ RenderContext *init_renderer()
     return context;
 }
 
-void clear_screen(RenderContext *context)
+void clear_screen(RenderContext *context, SimulationState *sim_state)
 {
     assert(context != NULL);
-    SDL_SetRenderDrawColor(context->renderer, 50, 50, 50, 255);
+    if (sim_state->connection_mode) SDL_SetRenderDrawColor(context->renderer, 30, 50, 90, 255);
+    else  SDL_SetRenderDrawColor(context->renderer, 70, 70, 70, 255);
     SDL_RenderClear(context->renderer);
 }
 
@@ -175,29 +176,25 @@ void render_top_bar(RenderContext *context)
     SDL_RenderFillRect(context->renderer, &top_bar);
 }
 
-void render_button(RenderContext *context, Button *button)
+void render_button(RenderContext *context, SimulationState *sim_state, Button *button)
 {
     assert(context != NULL);
     assert(button != NULL);
     assert(button->path != NULL && "Button must have a valid image path");
     assert(button->rect.w > 0 && button->rect.h > 0 && "Button dimensions must be positive");
-
-    // Draw button hit box
-    // SDL_SetRenderDrawColor(context->renderer, 200, 200, 200, 255);
-    // SDL_RenderDrawRect(context->renderer, &button->rect);
-
-    render_img(context, button->path, &button->rect);
+ 
+    if (!sim_state->connection_mode || !(strncmp(button->path, "assets/images/cable.png",  23))) {
+        render_img(context, button->path, &button->rect);
+    }
 }
 
-void render_node(RenderContext *context, Node *node, Node *dragged_node)
+void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
 {
     assert(context != NULL);
-    assert(node != NULL);
-    assert(node->path != NULL && "Node must have a valid image path");
-    assert(node->rect.w > 0 && node->rect.h > 0 && "Node dimensions must be positive");
+    assert(sim_state != NULL);
 
     SDL_Rect node_rect = node->rect;
-    if (dragged_node != NULL && dragged_node == node)
+    if (sim_state->dragged_node != NULL && sim_state->dragged_node == node)
     {
         node_rect.x -= 2;
         node_rect.y -= 2;
@@ -205,7 +202,31 @@ void render_node(RenderContext *context, Node *node, Node *dragged_node)
         node_rect.h += 4;
     }
 
+    if (sim_state->first_connection_node != NULL && sim_state->first_connection_node == node)
+    {
+        SDL_SetRenderDrawColor(context->renderer, 255, 255, 0, 255);
+        SDL_RenderDrawRect(context->renderer, &node_rect);
+    }
+
     render_img(context, node->path, &node_rect);
+}
+
+void render_connection(RenderContext *context, Connection *con) {
+    assert(context != NULL);
+    assert(con != NULL);
+
+    SDL_Rect n1 = con->from->rect;
+    SDL_Rect n2 = con->to->rect;
+
+    SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255);
+
+    // Berechne die Mittelpunkte der beiden Nodes
+    int x1 = n1.x + n1.w / 2;
+    int y1 = n1.y + n1.h / 2;
+    int x2 = n2.x + n2.w / 2;
+    int y2 = n2.y + n2.h / 2;
+
+    SDL_RenderDrawLine(context->renderer, x1, y1, x2, y2);
 }
 
 void render(RenderContext *context, SimulationState *sim_state)
@@ -215,7 +236,7 @@ void render(RenderContext *context, SimulationState *sim_state)
     assert(sim_state->buttons != NULL && "Buttons array must be initialized");
     assert(sim_state->nodes != NULL && "Nodes array must be initialized");
 
-    clear_screen(context);
+    clear_screen(context, sim_state);
     render_top_bar(context);
 
     // Render buttons
@@ -223,8 +244,19 @@ void render(RenderContext *context, SimulationState *sim_state)
     {
         Button *button = array_get(sim_state->buttons, i);
         assert(button != NULL && "Button must not be NULL");
-        render_button(context, button);
+        render_button(context, sim_state, button);
     }
+
+    // Rednder Connections
+    for (int i = 0; i < sim_state->connections->size; i++)
+    {
+        Connection *connection = array_get(sim_state->connections, i);
+        assert(connection != NULL && "Connection must not be NULL");
+
+        render_connection(context, connection);
+    }
+
+    // Render Nodes
 
     Node *last_node = NULL;
 
@@ -237,9 +269,9 @@ void render(RenderContext *context, SimulationState *sim_state)
             last_node = node;
             continue;
         }
-        render_node(context, node, sim_state->dragged_node);
+        render_node(context, node, sim_state);
     }
-    if (last_node != NULL) render_node(context, last_node, sim_state->dragged_node);
+    if (last_node != NULL) render_node(context, last_node, sim_state);
     
     present_screen(context);
 }

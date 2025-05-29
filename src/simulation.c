@@ -61,6 +61,30 @@ SimulationState *simulation_init(void) {
     };
     array_add(state->buttons, &nand_node_button);
 
+    Button light_button = {
+        .rect = {380, 10, NODE_WIDTH, NODE_HEIGHT},
+        .path = "assets/images/light_on.png",
+        .function_data = light_output,
+        .on_press = add_node,
+    };
+    array_add(state->buttons, &light_button);
+
+    Button switch_button = {
+        .rect = {450, 10, NODE_WIDTH, NODE_HEIGHT},
+        .path = "assets/images/switch_off.png",
+        .function_data = light_output,
+        .on_press = add_node,
+    };
+    array_add(state->buttons, &switch_button);
+
+    Button connection_button = {
+        .rect = {WINDOW_WIDTH - 50, 10, 30, 30},
+        .path = "assets/images/cable.png",
+        .function_data = nandGate,
+        .on_press = connection_mode,
+    };
+    array_add(state->buttons, &connection_button);
+
     // Initialize input state
     state->input.mouse_down = 0;
     state->input.mouse_up = 0;
@@ -70,6 +94,7 @@ SimulationState *simulation_init(void) {
     state->input.drag_offset_x = 0;
     state->input.drag_offset_y = 0;
     state->dragged_node = NULL;
+    state->first_connection_node = NULL;
 
     assert(state->nodes != NULL && "Nodes array should be initialized");
     assert(state->connections != NULL && "Connections array should be initialized");
@@ -102,11 +127,15 @@ void simulation_handle_input(SimulationState *state, SDL_Event *event) {
         break;
 
     case SDL_MOUSEBUTTONDOWN:
-        state->input.mouse_down = 1;
-        state->input.mouse_x = event->button.x;
-        state->input.mouse_y = event->button.y;
-        check_click_pos(state);
-        break;
+        if (event->button.button == SDL_BUTTON_LEFT)
+        {
+
+            state->input.mouse_down = 1;
+            state->input.mouse_x = event->button.x;
+            state->input.mouse_y = event->button.y;
+            check_click_pos(state);
+            break;
+        }
 
     case SDL_MOUSEMOTION:
         state->input.mouse_x = event->motion.x;
@@ -116,12 +145,16 @@ void simulation_handle_input(SimulationState *state, SDL_Event *event) {
         break;
 
     case SDL_MOUSEBUTTONUP:
-        state->input.mouse_down = 0;
-        state->input.mouse_x = event->button.x;
-        state->input.mouse_y = event->button.y;
-        state->input.is_dragging = 0;
-        state->dragged_node = NULL;
-        break;
+        if (event->button.button == SDL_BUTTON_LEFT)
+        {
+
+            state->input.mouse_down = 0;
+            state->input.mouse_x = event->button.x;
+            state->input.mouse_y = event->button.y;
+            state->input.is_dragging = 0;
+            state->dragged_node = NULL;
+            break;
+        }
 
     case SDL_KEYDOWN:
     case SDL_KEYUP:
@@ -137,10 +170,24 @@ void simulation_handle_input(SimulationState *state, SDL_Event *event) {
     }
 }
 
+void connection_mode(SimulationState *state, void *function_data) {
+    assert(state != NULL && "Cannot add node to NULL state");
+    assert(function_data != NULL && "Cannot add node with NULL function data");
+
+    state->connection_mode = !state->connection_mode;
+    state->first_connection_node = NULL;
+}
+
 void add_node(SimulationState *state, void *function_data) {
     assert(state != NULL && "Cannot add node to NULL state");
     assert(function_data != NULL && "Cannot add node with NULL function data");
     assert(state->nodes != NULL && "Nodes array must be initialized");
+
+    if (state->connection_mode)
+    {
+        return;
+    }
+    
 
     Button *button = (Button *)function_data;
     Operation op = *(Operation *)button->function_data;
@@ -187,10 +234,25 @@ void check_click_pos(SimulationState *state) {
             if (state->input.mouse_x >= node->rect.x && state->input.mouse_x <= node->rect.x + node->rect.w &&
                 state->input.mouse_y >= node->rect.y && state->input.mouse_y <= node->rect.y + node->rect.h)
             {
-                state->dragged_node = node;
-                state->input.drag_offset_x = state->input.mouse_x - node->rect.x;
-                state->input.drag_offset_y = state->input.mouse_y - node->rect.y;
-                state->input.is_dragging = 1;
+                if (state->connection_mode)
+                {
+                    if (state->first_connection_node == NULL) state->first_connection_node = node;
+                    else { 
+                        Connection con ={
+                            .from = state->first_connection_node, 
+                            .to = node,
+                        };
+                        array_add(state->connections, &con);
+                        state->first_connection_node = NULL;
+                    }
+                }
+                else
+                {
+                    state->input.drag_offset_x = state->input.mouse_x - node->rect.x;
+                    state->input.drag_offset_y = state->input.mouse_y - node->rect.y;
+                    state->input.is_dragging = 1;
+                    state->dragged_node = node;
+                }
                 break;
             }
         }
