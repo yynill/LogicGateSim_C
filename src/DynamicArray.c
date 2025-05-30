@@ -6,20 +6,20 @@
 DynamicArray *array_create(int init_capacity, int element_size)
 {
     assert(init_capacity > 0);
-    DynamicArray *new_array = (DynamicArray *)malloc(sizeof(DynamicArray)); // Allocate memory for struct
+    DynamicArray *new_array = (DynamicArray *)malloc(sizeof(DynamicArray));
     if (new_array == NULL)
     {
-        return NULL; // Check for allocation failure
+        return NULL;
     }
 
     new_array->size = 0;
     new_array->capacity = init_capacity;
     new_array->element_size = element_size;
-    new_array->data = malloc(new_array->capacity * element_size); // Allocate memory for the array of elements
+    new_array->data = malloc(new_array->capacity * element_size);
 
     if (new_array->data == NULL)
     {
-        free(new_array); // Clean up struct memory if array allocation fails
+        free(new_array);
         return NULL;
     }
     return new_array;
@@ -89,7 +89,7 @@ DynamicArray *array_copy(DynamicArray *arr)
     DynamicArray *new_array = array_create(arr->size, arr->element_size);
     if (new_array == NULL)
     {
-        free(new_array); // Clean up struct memory if array allocation fails
+        free(new_array); 
         return NULL;
     }
 
@@ -112,7 +112,6 @@ void array_remove_last(DynamicArray *arr)
 
     arr->size--;
 
-    // resize array
     if (arr->size > 0 && arr->size <= arr->capacity / 4)
     {
         void *new_memory = realloc(arr->data, arr->capacity / 2 * arr->element_size);
@@ -131,7 +130,6 @@ void array_remove_at(DynamicArray *arr, int index)
     assert(arr != NULL);
     assert(index < arr->size);
 
-    // Calculate how many bytes to move
     int bytes_to_move = (arr->size - index - 1) * arr->element_size;
     if (bytes_to_move > 0)
     {
@@ -142,7 +140,6 @@ void array_remove_at(DynamicArray *arr, int index)
 
     arr->size--;
 
-    // Resize array if too empty
     if (arr->size > 0 && arr->size <= arr->capacity / 4)
     {
         void *new_memory = realloc(arr->data, (arr->capacity / 2) * arr->element_size);

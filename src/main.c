@@ -3,11 +3,8 @@
 #include "main.h"
 #include <stdio.h>
 
-int main(int argc, char *argv[])
+int main()
 {
-    (void)argc; // Silence unused parameter warning
-    (void)argv; // Silence unused parameter warning
-
     SimulationState *state = simulation_init();
     RenderContext *context = init_renderer();
 
@@ -17,7 +14,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Main game loop
     while (state->is_running)
     {
         SDL_Event event;
@@ -27,11 +23,11 @@ int main(int argc, char *argv[])
         }
 
         simulation_update(state);
-        render(context, state); // Add rendering call
-        SDL_Delay(FRAME_DELAY); // Cap at TARGET_FPS
+        render(context, state);
+        SDL_Delay(FRAME_DELAY);
     }
 
     simulation_cleanup(state);
-    cleanup_renderer(context); // Add renderer cleanup
+    cleanup_renderer(context);
     return 0;
 }

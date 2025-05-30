@@ -86,7 +86,6 @@ SimulationState *simulation_init(void) {
     };
     array_add(state->buttons, &connection_button);
 
-    // Initialize input state
     state->input.mouse_down = 0;
     state->input.mouse_up = 0;
     state->input.mouse_x = 0;

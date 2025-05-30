@@ -47,8 +47,6 @@ RenderContext *init_renderer()
         return NULL;
     }
 
-    // Set texture scaling quality for better quality 0:nearest, 1:linear, 2:best
-    // NOTE: I see no difference between 0, 1 and 2
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
     context->renderer = SDL_CreateRenderer(context->window, -1, SDL_RENDERER_ACCELERATED);
@@ -62,7 +60,6 @@ RenderContext *init_renderer()
         return NULL;
     }
 
-    // Load Roboto font with higher resolution
     context->font = TTF_OpenFont("assets/fonts/Roboto-Regular.ttf", 16);
     if (!context->font)
     {
@@ -75,10 +72,8 @@ RenderContext *init_renderer()
         return NULL;
     }
 
-    // Enable font hinting for better rendering
     TTF_SetFontHinting(context->font, TTF_HINTING_LIGHT);
 
-    // Load circle texture
     context->circle_texture = IMG_LoadTexture(context->renderer, "assets/images/circle.png");
     if (!context->circle_texture)
     {
@@ -91,7 +86,6 @@ RenderContext *init_renderer()
         return NULL;
     }
 
-    // Critical initialization checks
     assert(context->window != NULL && "Window must be created");
     assert(context->renderer != NULL && "Renderer must be created");
     assert(context->font != NULL && "Font must be loaded");
@@ -156,7 +150,7 @@ void render_text(RenderContext *context, const char *text, int x, int y, SDL_Col
 void render_top_bar(RenderContext *context)
 {
     assert(context != NULL);
-    SDL_SetRenderDrawColor(context->renderer, 40, 40, 40, 255); // Dark gray background
+    SDL_SetRenderDrawColor(context->renderer, 40, 40, 40, 255);
     SDL_Rect top_bar = {0, 0, WINDOW_WIDTH, TOP_BAR_HEIGHT};
     SDL_RenderFillRect(context->renderer, &top_bar);
 }
@@ -209,11 +203,9 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         SDL_RenderDrawRect(context->renderer, &node_rect);
     }
 
-    // Render node body
     SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, 255);
     SDL_RenderFillRect(context->renderer, &node_rect);
 
-    // Render input pins
     SDL_SetTextureColorMod(context->circle_texture, 0, 0, 0);
     SDL_SetTextureAlphaMod(context->circle_texture, 255);
 
@@ -232,7 +224,6 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         SDL_RenderCopy(context->renderer, context->circle_texture, NULL, &pin_rect);
     }
 
-    // Render output pins
     int num_outputs = node->outputs->size;
     for (int i = 0; i < num_outputs; i++)
     {
@@ -257,7 +248,6 @@ void render_connection(RenderContext *context, Connection *con) {
 
     SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255);
 
-    // Berechne die Mittelpunkte der beiden Nodes
     int x1 = n1.x + n1.w / 2;
     int y1 = n1.y + n1.h / 2;
     int x2 = n2.x + n2.w / 2;
@@ -276,7 +266,6 @@ void render(RenderContext *context, SimulationState *sim_state)
     clear_screen(context, sim_state);
     render_top_bar(context);
 
-    // Render buttons
     for (int i = 0; i < sim_state->buttons->size; i++)
     {
         Button *button = array_get(sim_state->buttons, i);
@@ -284,7 +273,6 @@ void render(RenderContext *context, SimulationState *sim_state)
         render_button(context, button);
     }
 
-    // Rednder Connections
     for (int i = 0; i < sim_state->connections->size; i++)
     {
         Connection *connection = array_get(sim_state->connections, i);
@@ -292,8 +280,6 @@ void render(RenderContext *context, SimulationState *sim_state)
 
         render_connection(context, connection);
     }
-
-    // Render Nodes
 
     Node *last_node = NULL;
 

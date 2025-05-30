@@ -12,7 +12,6 @@ typedef struct SimulationState
     DynamicArray *connections;
     DynamicArray *buttons;
 
-    // Input state
     struct
     {
         int mouse_down;
@@ -34,7 +33,7 @@ typedef struct Button
 {
     SDL_Rect rect;
     const char *name;
-    void *function_data;                                           // data for the func
+    void *function_data;
     void (*on_press)(SimulationState *state, void *function_data); // Function pointer for button press action
 } Button;    
 

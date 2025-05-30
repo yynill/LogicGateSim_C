@@ -18,7 +18,7 @@ Node *create_node(int num_inputs, int num_outputs, Operation op, SDL_Rect rect, 
 
     for (int i = 0; i < num_inputs; i++) {
         Pin p;
-        p.x = -PIN_SIZE/2; // left edge
+        p.x = -PIN_SIZE/2;
         p.y = start_y_inputs + i * (PIN_SIZE + spacing);
         array_add(node->inputs, &p);
     }
@@ -28,7 +28,7 @@ Node *create_node(int num_inputs, int num_outputs, Operation op, SDL_Rect rect, 
 
     for (int i = 0; i < num_outputs; i++) {
         Pin p;
-        p.x = rect.w - PIN_SIZE / 2; // right edge
+        p.x = rect.w - PIN_SIZE / 2;
         p.y = start_y_outputs + i * (PIN_SIZE + spacing);
         array_add(node->outputs, &p);
     }

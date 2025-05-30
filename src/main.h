@@ -1,14 +1,11 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-// Window configuration
 #define WINDOW_TITLE "Logic Gate Sim"
 
-// Timing configuration
 #define TARGET_FPS 60
-#define FRAME_DELAY (1000 / TARGET_FPS) // Delay in milliseconds
+#define FRAME_DELAY (1000 / TARGET_FPS)
 
-// Input configuration
 #define KEY_UP SDLK_UP
 #define KEY_DOWN SDLK_DOWN
 #define KEY_LEFT SDLK_LEFT
