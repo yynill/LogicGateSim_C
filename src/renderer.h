@@ -32,6 +32,7 @@ void clear_screen(RenderContext *context);
 void present_screen(RenderContext *context);
 void cleanup_renderer(RenderContext *context);
 void render_text(RenderContext *context, const char *text, int x, int y, SDL_Color color);
+void render_img(RenderContext *context, const char *path, SDL_Rect *rect) ;
 void render(RenderContext *context, SimulationState *sim_state);
 
 #endif // RENDERER_H

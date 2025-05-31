@@ -1,23 +1,30 @@
-✅ check that ouputs cant connect to ouput cons. same with inputs
-
-✅  is click and hover on pin? 
-
-is there a way to do this without looping over every pin - yes chunkng for mouse cursor. check and loop only the ones in neighbouring chunks
-
-✅ click on the output / inout pins of the nodes to determain if this is an output of an input? 
-??? click drag release
 
 
-📋 add a step button
+
+
+
+📋 add and imolement buttona
+    Step
+    Back (cmd Z) is hard but i heared its like some tree generation - good practice.
+    Auto Play / Pause -  (x stpes per sec) 
+    Speed Control (+ - button)
+    Reset
+    download graph into a file and load later (really cool stuff)
+
+📋 different colours for nodes
+📋 switches and lights
+📋 different number of pins for nodes
+
 📋 simulate 1 step
+    for every node calcualte its ouptuts with current inputs
+    push ouptus to connections and to next nodes
 📋 set the connection and the pointer for input of b node is pointer t ouptut of a node 
 📋 implement logic gate logic 
 📋 visually show logic in cables ? and node? 
 
 
-
+📋 render cables nice with snapping and corners and such + dragging ?
 📋 cut cables with right click knive would be cool or something
-📋 render cables nice with snapping and corners and such
 📋 select multiple 
 📋 copy paste multiple
 📋 delete nodes 
@@ -25,6 +32,7 @@ is there a way to do this without looping over every pin - yes chunkng for mouse
 📋 middle mouse scroll around  
 
 📋 change void functions to int to check if sucessful
+is there a way to do this without looping over every pin - yes chunkng for mouse cursor. check and loop only the ones in neighbouring chunks
 
 ####################################
 ## ✅ completed - 🐞 bug - 📋 todo ##

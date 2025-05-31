@@ -6,6 +6,13 @@
 #include "renderer.h"
 #include <assert.h>
 
+void null_function(SimulationState *state, void *function_data){
+    (void)state;
+    (void)function_data;
+    printf("todo\n"); // todo: delete when others implememtned - just palce holder for now.
+    return;
+}
+
 SimulationState *simulation_init(void) {
     SimulationState *state = malloc(sizeof(SimulationState));
     if (!state)
@@ -78,6 +85,38 @@ SimulationState *simulation_init(void) {
     };
     array_add(state->buttons, &switch_button);
 
+    Button step_back_button = {
+        .rect = {WINDOW_WIDTH - 4 * (BUTTON_HEIGHT + 10), 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
+        .name = "/assets/images/step_back.png",
+        .function_data = light_output,
+        .on_press = null_function,
+    };
+    array_add(state->buttons, &step_back_button);
+
+    Button play_button = {
+        .rect = {WINDOW_WIDTH - 3 * (BUTTON_HEIGHT + 10), 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
+        .name = "/assets/images/play.png",
+        .function_data = light_output,
+        .on_press = null_function,
+    };
+    array_add(state->buttons, &play_button);
+
+    Button step_forth_button = {
+        .rect = {WINDOW_WIDTH - 2 * (BUTTON_HEIGHT + 10), 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
+        .name = "/assets/images/step_forth.png",
+        .function_data = light_output,
+        .on_press = one_step,
+    };
+    array_add(state->buttons, &step_forth_button);
+
+    Button reload_button = {
+        .rect = {WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) - 10, 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
+        .name = "/assets/images/reload.png",
+        .function_data = light_output,
+        .on_press = null_function,
+    };
+    array_add(state->buttons, &reload_button);
+
     state->input.mouse_down = 0;
     state->input.mouse_up = 0;
     state->input.mouse_x = 0;
@@ -113,8 +152,7 @@ void simulation_handle_input(SimulationState *state, SDL_Event *event) {
     assert(state != NULL && "Cannot handle input with NULL state");
     assert(event != NULL && "Cannot handle NULL event");
 
-    switch (event->type)
-    {
+    switch (event->type) {
     case SDL_QUIT:
         state->is_running = 0;
         break;
@@ -152,7 +190,6 @@ void simulation_handle_input(SimulationState *state, SDL_Event *event) {
 
     case SDL_KEYDOWN:
     case SDL_KEYUP:
-    {
         switch (event->key.keysym.sym)
         {
         case SDLK_ESCAPE:
@@ -160,7 +197,6 @@ void simulation_handle_input(SimulationState *state, SDL_Event *event) {
             break;
         }
         break;
-    }
     }
 }
 
@@ -173,7 +209,22 @@ void add_node(SimulationState *state, void *function_data) {
     Operation op = *(Operation *)button->function_data;
     SDL_Rect node_rect = {.x = 100, .y = 100, .w = NODE_WIDTH, .h = NODE_HEIGHT};
 
-    if(!insert_node(state, 2, 1, op, node_rect, button->name)){
+    int num_inputs = 2;
+    int num_outputs = 1;
+    if (strcmp(button->name, "NOT") == 0) {
+        num_inputs = 1;
+    }
+    if (strcmp(button->name, "SWITCH") == 0) {
+        num_inputs = 0;
+        node_rect.w = NODE_HEIGHT;
+    }
+    if (strcmp(button->name, "LIGHT") == 0) {
+        num_inputs = 1;
+        num_outputs = 0;
+        node_rect.w = NODE_HEIGHT;
+    }
+
+    if(!insert_node(state, num_inputs, num_outputs, op, node_rect, button->name)){
         printf("filed to add node\n");
     }
     // array_add(state->nodes, node);
@@ -223,8 +274,7 @@ void check_click_pos(SimulationState *state) {
             Button *button = array_get(state->buttons, i);
             assert(button != NULL && "Button should not be NULL");
             if (state->input.mouse_x >= button->rect.x && state->input.mouse_x <= button->rect.x + button->rect.w &&
-                state->input.mouse_y >= button->rect.y && state->input.mouse_y <= button->rect.y + button->rect.h)
-            {
+                state->input.mouse_y >= button->rect.y && state->input.mouse_y <= button->rect.y + button->rect.h) {
                 button->on_press(state, button);
             }
         }
@@ -232,9 +282,7 @@ void check_click_pos(SimulationState *state) {
         for (int i = state->nodes->size - 1; i >= 0; i--) {
             Node *node = array_get(state->nodes, i);
             if (state->input.mouse_x >= node->rect.x && state->input.mouse_x <= node->rect.x + node->rect.w &&
-                state->input.mouse_y >= node->rect.y && state->input.mouse_y <= node->rect.y + node->rect.h)
-            {
-
+                state->input.mouse_y >= node->rect.y && state->input.mouse_y <= node->rect.y + node->rect.h) {
                 state->input.drag_offset_x = state->input.mouse_x - node->rect.x;
                 state->input.drag_offset_y = state->input.mouse_y - node->rect.y;
                 state->input.is_dragging = 1;
@@ -259,11 +307,16 @@ void check_click_pos(SimulationState *state) {
     }
 }
 
-void simulation_update(SimulationState *state)
-{
+void one_step(SimulationState *state, void *function_data) {
+    assert(state != NULL);
+    (void)function_data;
+
+    printf("one step %d\n", state->connections->size);
+}
+
+void simulation_update(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
-    if (state->input.is_dragging && state->dragged_node != NULL)
-    {
+    if (state->input.is_dragging && state->dragged_node != NULL) {
         state->dragged_node->rect.x = state->input.mouse_x - state->input.drag_offset_x;
         state->dragged_node->rect.y = state->input.mouse_y - state->input.drag_offset_y;
     }

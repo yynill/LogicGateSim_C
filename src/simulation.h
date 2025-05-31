@@ -46,5 +46,6 @@ void simulation_handle_input(SimulationState *state, SDL_Event *event);
 void add_node(SimulationState *state, void *function_data);
 void check_click_pos(SimulationState *state);
 void check_motion_pos(SimulationState *state);
+void one_step(SimulationState *state, void *function_data);
 
 #endif // SIMULATION_H

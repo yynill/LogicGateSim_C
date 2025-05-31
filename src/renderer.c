@@ -143,6 +143,33 @@ void render_text(RenderContext *context, const char *text, int x, int y, SDL_Col
     SDL_FreeSurface(surface);
 }
 
+void render_img(RenderContext *context, const char *path, SDL_Rect *rect) {
+    assert(context != NULL);
+    assert(path != NULL);
+    assert(rect != NULL);
+    assert(rect->w > 0 && rect->h > 0 && "Image dimensions must be positive");
+
+    SDL_Surface *surface = IMG_Load(path);
+    if (!surface)
+    {
+        printf("Failed to load image %s! SDL_image Error: %s\n", path, IMG_GetError());
+        return;
+    }
+
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(context->renderer, surface);
+    if (!texture)
+    {
+        printf("Failed to create texture! SDL_Error: %s\n", SDL_GetError());
+        SDL_FreeSurface(surface);
+        return;
+    }
+
+    SDL_RenderCopy(context->renderer, texture, NULL, rect);
+
+    SDL_DestroyTexture(texture);
+    SDL_FreeSurface(surface);
+}
+
 void render_top_bar(RenderContext *context) {
     assert(context != NULL);
     SDL_SetRenderDrawColor(context->renderer, 40, 40, 40, 255);
@@ -156,20 +183,26 @@ void render_button(RenderContext *context, Button *button) {
     assert(button->name != NULL && "Button must have a valid image path");
     assert(button->rect.w > 0 && button->rect.h > 0 && "Button dimensions must be positive");
 
-    SDL_SetRenderDrawColor(context->renderer, 20, 20, 20, 255);
-    SDL_RenderFillRect(context->renderer, &button->rect);
-
-    SDL_Color text_color = {255, 255, 255, 255};
-
     int text_width, text_height;
-    if (TTF_SizeText(context->font, button->name, &text_width, &text_height) == 0) {
-        int text_x = button->rect.x + (button->rect.w - text_width) / 2;
-        int text_y = button->rect.y + (button->rect.h - text_height) / 2;
-
-        render_text(context, button->name, text_x, text_y, text_color);
+    if (strncmp(button->name, "/", 1) == 0) {
+        render_img(context, button->name, &button->rect);
     }
-    else {
-        render_text(context, button->name, button->rect.x, button->rect.y, text_color);
+    else{
+        SDL_SetRenderDrawColor(context->renderer, 20, 20, 20, 255);
+        SDL_RenderFillRect(context->renderer, &button->rect);
+
+        SDL_Color text_color = {255, 255, 255, 255};
+        if (TTF_SizeText(context->font, button->name, &text_width, &text_height) == 0)
+        {
+            int text_x = button->rect.x + (button->rect.w - text_width) / 2;
+            int text_y = button->rect.y + (button->rect.h - text_height) / 2;
+
+            render_text(context, button->name, text_x, text_y, text_color);
+        }
+        else
+        {
+            render_text(context, button->name, button->rect.x, button->rect.y, text_color);
+        }
     }
 }
 
@@ -186,8 +219,26 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         // todo: move each pin for zooom 
     }
 
-    SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, 255);
+    if (strcmp(node->name, "AND") == 0) {
+        SDL_SetRenderDrawColor(context->renderer, 0, 128, 0, 255);
+    } else if (strcmp(node->name, "OR") == 0) {
+        SDL_SetRenderDrawColor(context->renderer, 255, 165, 0, 255);
+    } else if (strcmp(node->name, "NOT") == 0) {
+        SDL_SetRenderDrawColor(context->renderer, 128, 0, 0, 255);
+    } else if (strcmp(node->name, "NOR") == 0) {
+        SDL_SetRenderDrawColor(context->renderer, 128, 0, 128, 255);
+    } else if (strcmp(node->name, "NAND") == 0) {
+        SDL_SetRenderDrawColor(context->renderer, 0, 0, 128, 255);
+    } else {
+        SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, 255);
+    }
     SDL_RenderFillRect(context->renderer, &node_rect);
+
+    if (strcmp(node->name, "SWITCH") == 0) {
+        render_img(context, "/assets/images/switch_off.png", &node->rect);
+    }else if (strcmp(node->name, "LIGHT") == 0) {
+        render_img(context, "/assets/images/light_off.png", &node->rect);
+    }
 
     SDL_SetTextureColorMod(context->circle_texture, 0, 0, 0);
     SDL_SetTextureAlphaMod(context->circle_texture, 255);
@@ -226,17 +277,16 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         SDL_RenderCopy(context->renderer, context->circle_texture, NULL, &pin_rect);
     }
 
-    SDL_Color text_color = {255, 255, 255, 255};
-
-    int text_width, text_height;
-    if (TTF_SizeText(context->font, node->name, &text_width, &text_height) == 0) {
-        int text_x = node->rect.x + (node->rect.w - text_width) / 2;
-        int text_y = node->rect.y + (node->rect.h - text_height) / 2;
-
-        render_text(context, node->name, text_x, text_y, text_color);
-    }
-    else {
-        render_text(context, node->name, node->rect.x, node->rect.y, text_color);
+    if (strcmp(node->name, "SWITCH") != 0 && strcmp(node->name, "LIGHT") != 0) {
+        SDL_Color text_color = {255, 255, 255, 255};
+        int text_width, text_height;
+        if (TTF_SizeText(context->font, node->name, &text_width, &text_height) == 0) {
+            int text_x = node->rect.x + (node->rect.w - text_width) / 2;
+            int text_y = node->rect.y + (node->rect.h - text_height) / 2;
+            render_text(context, node->name, text_x, text_y, text_color);
+        } else {
+            render_text(context, node->name, node->rect.x, node->rect.y, text_color);
+        }
     }
 }
 
@@ -252,8 +302,13 @@ void render_connection(RenderContext *context, Connection *con) {
     int x2 = parent2->rect.x + con->p2->x + PIN_SIZE / 2;
     int y2 = parent2->rect.y + con->p2->y + PIN_SIZE / 2;
 
-    SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255);
-    SDL_RenderDrawLine(context->renderer, x1, y1, x2, y2);
+    SDL_SetRenderDrawColor(context->renderer, 30, 30, 30, 255);
+
+    int thickness = 4;
+    for (int i = -thickness/2; i <= thickness/2; i++) {
+        SDL_RenderDrawLine(context->renderer, x1, y1 + i, x2, y2 + i);
+        SDL_RenderDrawLine(context->renderer, x1 + i, y1, x2 + i, y2);
+    }
 }
 
 
