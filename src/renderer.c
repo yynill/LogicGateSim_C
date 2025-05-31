@@ -204,6 +204,7 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         };
 
         if (sim_state->hovered_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 255, 60, 60);
+        else if (sim_state->first_selected_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 0, 200, 103);
         else SDL_SetTextureColorMod(context->circle_texture, 0, 0, 0);
         SDL_RenderCopy(context->renderer, context->circle_texture, NULL, &pin_rect);
     }
@@ -220,7 +221,8 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         };
 
         if (sim_state->hovered_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 255, 60, 60);
-        else SDL_SetTextureColorMod(context->circle_texture, 0, 0, 0);
+        else if (sim_state->first_selected_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 0, 200, 103);
+        else SDL_SetTextureColorMod(context->circle_texture, 0, 0, 0);  
         SDL_RenderCopy(context->renderer, context->circle_texture, NULL, &pin_rect);
     }
 

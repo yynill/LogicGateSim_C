@@ -26,6 +26,7 @@ typedef struct SimulationState
     Node *dragged_node;
 
     Pin *hovered_pin;
+    // todo add last selcted pin or drag system
     Pin *first_selected_pin;
 } SimulationState;
 

@@ -1,25 +1,21 @@
-✅ add inputs and ouputs
-✅ implement cables 
-✅ render cables simple
-✅ user cricle / png to render pins
-✅ change connectio s feom node->pin to node->pin 
-✅ check if over pin. so it is pin presiscion > node presision
-set the connection and the pointer for input of b node is pointer t ouptut of a node 
+✅ check that ouputs cant connect to ouput cons. same with inputs
 
+✅  is click and hover on pin? 
 
-✅ dynamic array copies pins ans stuff so they exist twice. so when i drag move the node it isnt getting updated in connections i think. 
-
-check that ouputs cant connect to ouput cons. same with inputs
-
-is click and hover on pin? 
-if hover mark diff color. 
 is there a way to do this without looping over every pin - yes chunkng for mouse cursor. check and loop only the ones in neighbouring chunks
 
-click on the output / inout pins of the nodes to determain if this is an output of an input? 
+✅ click on the output / inout pins of the nodes to determain if this is an output of an input? 
 ??? click drag release
 
+
+📋 add a step button
+📋 simulate 1 step
+📋 set the connection and the pointer for input of b node is pointer t ouptut of a node 
 📋 implement logic gate logic 
-📋 visually show logic
+📋 visually show logic in cables ? and node? 
+
+
+
 📋 cut cables with right click knive would be cool or something
 📋 render cables nice with snapping and corners and such
 📋 select multiple 

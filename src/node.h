@@ -18,6 +18,7 @@ typedef struct Node
 
 typedef struct Pin {
     int x, y; // rel pos to node
+    int is_input;
     Node *parent_node; 
 } Pin;
 

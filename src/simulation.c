@@ -244,9 +244,8 @@ void check_click_pos(SimulationState *state) {
         }
 
         if (state->hovered_pin != NULL) {
-            if (state->first_selected_pin == NULL) {
-                state->first_selected_pin = state->hovered_pin;
-            }
+            if (state->first_selected_pin == NULL) state->first_selected_pin = state->hovered_pin;
+            else if(state->first_selected_pin->is_input == state->hovered_pin->is_input) state->first_selected_pin = NULL;
             else {
                 Connection new_con = {
                     .p1 = state->first_selected_pin,
@@ -254,8 +253,6 @@ void check_click_pos(SimulationState *state) {
                 };
                 state->first_selected_pin = NULL;
                 array_add(state->connections, &new_con);
-
-                printf("added con\n");
                 // todo: set input of node b to output of node a
             }
         }

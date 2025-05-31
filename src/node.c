@@ -2,10 +2,11 @@
 #include "renderer.h"
 #include "assert.h"
 
-Pin create_pin(int x, int y, Node *parent_node) {
+Pin create_pin(int x, int y, int ii, Node *parent_node) {
     Pin p;
     p.x = x;
     p.y = y;
+    p.is_input = ii;
     p.parent_node = parent_node;
     return p;
 }
@@ -39,7 +40,7 @@ int insert_node(SimulationState *state, int num_inputs, int num_outputs, Operati
     float start_y_inputs = (rect.h / 2.0f) - (total_inputs_height / 2.0f);
 
     for (int i = 0; i < num_inputs; i++) {
-        Pin p = create_pin(-PIN_SIZE / 2, start_y_inputs + i * (PIN_SIZE + spacing), node);
+        Pin p = create_pin(-PIN_SIZE / 2, start_y_inputs + i * (PIN_SIZE + spacing), 1, node);
         array_add(node->inputs, &p);
     }
 
@@ -47,7 +48,7 @@ int insert_node(SimulationState *state, int num_inputs, int num_outputs, Operati
     float start_y_outputs = (rect.h / 2.0f) - (total_outputs_height / 2.0f);
 
     for (int i = 0; i < num_outputs; i++) {
-        Pin p = create_pin(rect.w - PIN_SIZE / 2, start_y_outputs + i * (PIN_SIZE + spacing), node);
+        Pin p = create_pin(rect.w - PIN_SIZE / 2, start_y_outputs + i * (PIN_SIZE + spacing), 0, node);
         array_add(node->outputs, &p);
     }
 
