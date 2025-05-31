@@ -22,12 +22,12 @@ typedef struct SimulationState
         int is_dragging;
         int drag_offset_x;
         int drag_offset_y;
-    } input;    
+    } input;
     Node *dragged_node;
-    
-    int connection_mode;
-    Node *first_connection_node;
-} SimulationState;    
+
+    Pin *hovered_pin;
+    Pin *first_selected_pin;
+} SimulationState;
 
 typedef struct Button
 {
@@ -35,7 +35,7 @@ typedef struct Button
     const char *name;
     void *function_data;
     void (*on_press)(SimulationState *state, void *function_data); // Function pointer for button press action
-} Button;    
+} Button;
 
 // Function declarations
 SimulationState *simulation_init(void);
@@ -44,6 +44,6 @@ void simulation_update(SimulationState *state);
 void simulation_handle_input(SimulationState *state, SDL_Event *event);
 void add_node(SimulationState *state, void *function_data);
 void check_click_pos(SimulationState *state);
-void connection_mode(SimulationState *state, void *function_data);
+void check_motion_pos(SimulationState *state);
 
 #endif // SIMULATION_H

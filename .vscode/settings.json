@@ -2,6 +2,9 @@
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "string.h": "c",
-        "__node_handle": "c"
+        "__node_handle": "c",
+        "renderer.h": "c",
+        "simulation.h": "c",
+        "dynamicarray.h": "c"
     }
 }

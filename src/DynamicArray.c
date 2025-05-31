@@ -32,7 +32,7 @@ void array_free(DynamicArray *arr)
     free(arr);
 }
 
-void array_add(DynamicArray *arr, void *element)
+void array_add(DynamicArray *arr, void *element) // todo; remove array add and replcaw with direct inserts using array_add_uninitialized
 {
     assert(arr != NULL);
     assert(element != NULL);
@@ -52,6 +52,27 @@ void array_add(DynamicArray *arr, void *element)
     void *destination = (char *)arr->data + (arr->size * arr->element_size);
     memcpy(destination, element, arr->element_size);
     arr->size++;
+}
+
+void *array_add_uninitialized(DynamicArray *arr)
+{
+    assert(arr != NULL);
+
+    if (arr->size >= arr->capacity)
+    {
+        void *new_memory = realloc(arr->data, arr->capacity * 2 * arr->element_size);
+        if (new_memory == NULL)
+        {
+            printf("ERROR - array_add_uninitialized: resize error\n");
+            return NULL;
+        }
+        arr->data = new_memory;
+        arr->capacity *= 2;
+    }
+
+    void *destination = (char *)arr->data + (arr->size * arr->element_size);
+    arr->size++;
+    return destination;
 }
 
 void array_set(DynamicArray *arr, int index, void *element)
@@ -78,9 +99,8 @@ void array_set(DynamicArray *arr, int index, void *element)
 void *array_get(DynamicArray *arr, int index)
 {
     assert(arr != NULL);
-    assert(index < arr->size);
-
-    return (void *)((char *)arr->data + index * arr->element_size);
+    assert(index >= 0 && index < arr->size);
+    return (char *)arr->data + (index * arr->element_size);
 }
 
 DynamicArray *array_copy(DynamicArray *arr)

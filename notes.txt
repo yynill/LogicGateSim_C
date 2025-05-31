@@ -1,18 +1,15 @@
-✅ node dragging bug 
-✅ render dragged nod differently, maybe z index and outline or something. or make bigger. 
-📋 add inputs and ouputs
-📋 implement cables 
+✅ add inputs and ouputs
+✅ implement cables 
 ✅ render cables simple
-
-🐞 think about how to connect inputs to outputs - connections wont cut it. probably something like: input of b node is pointer t ouptut of a node 
-    in this way i can also connect nodes to themselves
-
-
-
 ✅ user cricle / png to render pins
 ✅ change connectio s feom node->pin to node->pin 
-check if over pin. so it is pin presiscion > node presision
+✅ check if over pin. so it is pin presiscion > node presision
 set the connection and the pointer for input of b node is pointer t ouptut of a node 
+
+
+✅ dynamic array copies pins ans stuff so they exist twice. so when i drag move the node it isnt getting updated in connections i think. 
+
+check that ouputs cant connect to ouput cons. same with inputs
 
 is click and hover on pin? 
 if hover mark diff color. 
@@ -31,7 +28,7 @@ click on the output / inout pins of the nodes to determain if this is an output 
 📋 zoom  
 📋 middle mouse scroll around  
 
-
+📋 change void functions to int to check if sucessful
 
 ####################################
 ## ✅ completed - 🐞 bug - 📋 todo ##

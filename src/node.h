@@ -5,24 +5,26 @@
 #include "DynamicArray.h"
 
 typedef int (*Operation)(int, int);
-
-typedef struct Pin {
-    int x, y; // rel pos to node
-} Pin;
+typedef struct SimulationState SimulationState;
 
 typedef struct Node
 {
-    DynamicArray *inputs;
-    DynamicArray * outputs;
+    DynamicArray *inputs;  // pins
+    DynamicArray *outputs; // pins
     Operation operation;
     const char *name;
     SDL_Rect rect;
 } Node;
 
+typedef struct Pin {
+    int x, y; // rel pos to node
+    Node *parent_node; 
+} Pin;
+
 typedef struct Connection
 {
-    Node *from;
-    Node *to;
+    Pin *p1;
+    Pin *p2;
 } Connection;
 
 // node operations
@@ -36,6 +38,6 @@ static inline int norGate(int a, int b) { return !(a || b); }
 static inline int nandGate(int a, int b) { return !(a && b); }
 
 // functions 
-Node *create_node(int num_inputs, int num_outputs, Operation op, SDL_Rect rect, const char *name);
+int insert_node(SimulationState *state, int num_inputs, int num_outputs, Operation op, SDL_Rect rect, const char *name);
 
 #endif // NODE_H
