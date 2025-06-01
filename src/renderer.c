@@ -96,7 +96,7 @@ RenderContext *init_renderer()
 void clear_screen(RenderContext *context)
 {
     assert(context != NULL);
-    SDL_SetRenderDrawColor(context->renderer, 70, 70, 70, 255);
+    SDL_SetRenderDrawColor(context->renderer, 100, 100, 100, 255);
     SDL_RenderClear(context->renderer);
 }
 
@@ -219,28 +219,25 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         // todo: move each pin for zooom 
     }
 
-    if (strcmp(node->name, "AND") == 0) {
-        SDL_SetRenderDrawColor(context->renderer, 0, 128, 0, 255);
-    } else if (strcmp(node->name, "OR") == 0) {
-        SDL_SetRenderDrawColor(context->renderer, 255, 165, 0, 255);
-    } else if (strcmp(node->name, "NOT") == 0) {
-        SDL_SetRenderDrawColor(context->renderer, 128, 0, 0, 255);
-    } else if (strcmp(node->name, "NOR") == 0) {
-        SDL_SetRenderDrawColor(context->renderer, 128, 0, 128, 255);
-    } else if (strcmp(node->name, "NAND") == 0) {
-        SDL_SetRenderDrawColor(context->renderer, 0, 0, 128, 255);
-    } else {
-        SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, 255);
-    }
-    SDL_RenderFillRect(context->renderer, &node_rect);
-
     if (strcmp(node->name, "SWITCH") == 0) {
-        render_img(context, "/assets/images/switch_off.png", &node->rect);
-    }else if (strcmp(node->name, "LIGHT") == 0) {
-        render_img(context, "/assets/images/light_off.png", &node->rect);
+        Pin *p = array_get(node->outputs, 0);
+        if (p->state) render_img(context, "/assets/images/switch_on.png", &node_rect);
+        else render_img(context, "/assets/images/switch_off.png", &node_rect);
+    } else if (strcmp(node->name, "LIGHT") == 0) {
+        Pin *p = array_get(node->inputs, 0);
+        if (p->state) render_img(context, "/assets/images/light_on.png", &node_rect);
+        else render_img(context, "/assets/images/light_off.png", &node_rect);
+    } else {
+        if (strcmp(node->name, "AND") == 0) SDL_SetRenderDrawColor(context->renderer, 0, 128, 0, 255);
+        else if (strcmp(node->name, "OR") == 0) SDL_SetRenderDrawColor(context->renderer, 255, 165, 0, 255);
+        else if (strcmp(node->name, "NOT") == 0) SDL_SetRenderDrawColor(context->renderer, 128, 0, 0, 255);
+        else if (strcmp(node->name, "NOR") == 0) SDL_SetRenderDrawColor(context->renderer, 128, 0, 128, 255);
+        else if (strcmp(node->name, "NAND") == 0) SDL_SetRenderDrawColor(context->renderer, 0, 0, 128, 255);
+        else  SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, 255);
+        
+        SDL_RenderFillRect(context->renderer, &node_rect);
     }
 
-    SDL_SetTextureColorMod(context->circle_texture, 0, 0, 0);
     SDL_SetTextureAlphaMod(context->circle_texture, 255);
 
     int num_inputs = node->inputs->size;
@@ -255,7 +252,8 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         };
 
         if (sim_state->hovered_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 255, 60, 60);
-        else if (sim_state->first_selected_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 0, 200, 103);
+        else if (sim_state->first_selected_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 0, 128, 255);
+        else if (pin->state) SDL_SetTextureColorMod(context->circle_texture, 0, 200, 103);
         else SDL_SetTextureColorMod(context->circle_texture, 0, 0, 0);
         SDL_RenderCopy(context->renderer, context->circle_texture, NULL, &pin_rect);
     }
@@ -272,7 +270,8 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         };
 
         if (sim_state->hovered_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 255, 60, 60);
-        else if (sim_state->first_selected_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 0, 200, 103);
+        else if (sim_state->first_selected_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 0, 128, 255);
+        else if (pin->state) SDL_SetTextureColorMod(context->circle_texture, 0, 200, 103);
         else SDL_SetTextureColorMod(context->circle_texture, 0, 0, 0);  
         SDL_RenderCopy(context->renderer, context->circle_texture, NULL, &pin_rect);
     }
@@ -302,7 +301,8 @@ void render_connection(RenderContext *context, Connection *con) {
     int x2 = parent2->rect.x + con->p2->x + PIN_SIZE / 2;
     int y2 = parent2->rect.y + con->p2->y + PIN_SIZE / 2;
 
-    SDL_SetRenderDrawColor(context->renderer, 30, 30, 30, 255);
+    if (con->state) SDL_SetRenderDrawColor(context->renderer, 0, 200, 103, 255);
+    else SDL_SetRenderDrawColor(context->renderer, 0, 0, 30, 255);
 
     int thickness = 4;
     for (int i = -thickness/2; i <= thickness/2; i++) {

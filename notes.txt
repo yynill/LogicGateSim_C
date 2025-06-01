@@ -11,16 +11,13 @@
     Reset
     download graph into a file and load later (really cool stuff)
 
-📋 different colours for nodes
-📋 switches and lights
-📋 different number of pins for nodes
+✅ different colours for nodes
+✅ switches and lights
+✅ different number of pins for nodes
 
-📋 simulate 1 step
-    for every node calcualte its ouptuts with current inputs
-    push ouptus to connections and to next nodes
-📋 set the connection and the pointer for input of b node is pointer t ouptut of a node 
-📋 implement logic gate logic 
-📋 visually show logic in cables ? and node? 
+✅ simulate 1 step
+✅ implement logic gate logic 
+✅ visually show logic in cables ? and node? 
 
 
 📋 render cables nice with snapping and corners and such + dragging ?

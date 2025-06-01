@@ -12,6 +12,7 @@
 #define WINDOW_HEIGHT ((800) + TOP_BAR_HEIGHT) 
 
 #define NODE_WIDTH 78
+#define SMALL_NODE_WIDTH 54
 #define NODE_HEIGHT 36
 #define PIN_SIZE 10
 

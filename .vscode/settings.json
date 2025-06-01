@@ -5,6 +5,7 @@
         "__node_handle": "c",
         "renderer.h": "c",
         "simulation.h": "c",
-        "dynamicarray.h": "c"
+        "dynamicarray.h": "c",
+        "assert.h": "c"
     }
 }

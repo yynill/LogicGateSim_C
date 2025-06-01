@@ -14,7 +14,8 @@ typedef struct SimulationState
 
     struct
     {
-        int mouse_down;
+        int left_mouse_down;
+        int right_mouse_down;
         int mouse_up;
         int mouse_x;
         int mouse_y;
@@ -44,7 +45,8 @@ void simulation_cleanup(SimulationState *state);
 void simulation_update(SimulationState *state);
 void simulation_handle_input(SimulationState *state, SDL_Event *event);
 void add_node(SimulationState *state, void *function_data);
-void check_click_pos(SimulationState *state);
+void check_left_click(SimulationState *state);
+void check_right_click(SimulationState *state);
 void check_motion_pos(SimulationState *state);
 void one_step(SimulationState *state, void *function_data);
 
