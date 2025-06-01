@@ -1,7 +1,6 @@
 
 
-
-
+🐞 when i connect 2 cables from different outputs to a inout, to a not gate for eaxmple, it only reacts to one of the both iputs. when it should react as if it was alittle or gate.
 
 📋 add and imolement buttona
     ✅ Step
@@ -26,3 +25,5 @@ is there a way to do this without looping over every pin - yes chunkng for mouse
 ####################################
 ## ✅ completed - 🐞 bug - 📋 todo ##
 ####################################
+
+oh fuck i got bored of this now and want to build a server fram scratch and optimize the shit out of it with data sending lulu 

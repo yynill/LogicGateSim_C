@@ -5,6 +5,7 @@
 
 int main() {
     SimulationState *state = simulation_init();
+    printf("Size of struct SimulationState: %zu bytes\n", sizeof(struct SimulationState));
     RenderContext *context = init_renderer();
 
     if (!state || !context) {
