@@ -97,7 +97,7 @@ SimulationState *simulation_init(void) {
         .rect = {WINDOW_WIDTH - 3 * (BUTTON_HEIGHT + 10), 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
         .name = "/assets/images/play.png",
         .function_data = nullGate,
-        .on_press = null_function,
+        .on_press = toggle_play_pause,
     };
     array_add(state->buttons, &play_button);
 
@@ -113,7 +113,7 @@ SimulationState *simulation_init(void) {
         .rect = {WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) - 10, 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
         .name = "/assets/images/reload.png",
         .function_data = nullGate,
-        .on_press = null_function,
+        .on_press = reset_sim,
     };
     array_add(state->buttons, &reload_button);
 
@@ -124,6 +124,7 @@ SimulationState *simulation_init(void) {
     state->input.is_dragging = 0;
     state->input.drag_offset_x = 0;
     state->input.drag_offset_y = 0;
+    state->input.is_paused = 1;
     state->dragged_node = NULL;
     state->hovered_pin = NULL;
     state->first_selected_pin = NULL;
@@ -144,6 +145,7 @@ void simulation_cleanup(SimulationState *state) {
     {
         array_free(state->nodes);
         array_free(state->connections);
+        array_free(state->buttons);
         free(state);
     }
 }
@@ -309,7 +311,6 @@ void check_left_click(SimulationState *state) {
                 };
                 state->first_selected_pin = NULL;
                 array_add(state->connections, &new_con);
-                // propagate_state(&new_con);
                 // todo: set input of node b to output of node a
             }
         }
@@ -346,23 +347,40 @@ void one_step(SimulationState *state, void *function_data) {
 
     for (int i = 0; i < state->nodes->size; i++) {
         Node *node = array_get(state->nodes, i);
-        print_node(node);
+        // print_node(node);
         run_node(node);
-        print_node(node);
     }
 
     for (int i = 0; i < state->connections->size; i++) {
         Connection *con = array_get(state->connections, i);
-        print_connection(con);
         propagate_state(con);
-        print_connection(con);
+        // print_connection(con);
     }
 }
+
+void toggle_play_pause(SimulationState *state, void *function_data) {
+    assert(state != NULL);
+    (void)function_data;
+
+    state->input.is_paused = !state->input.is_paused;
+    printf("state->input.is_paused: %d\n", state->input.is_paused);
+}
+
+void reset_sim(SimulationState *state, void *function_data)
+{
+    assert(state != NULL);
+    (void)function_data;
+    state->should_reset = 1;
+}
+
 
 void simulation_update(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
     if (state->input.is_dragging && state->dragged_node != NULL) {
         state->dragged_node->rect.x = state->input.mouse_x - state->input.drag_offset_x;
         state->dragged_node->rect.y = state->input.mouse_y - state->input.drag_offset_y;
+    }
+    if (!state->input.is_paused) {
+        one_step(state, "");
     }
 }

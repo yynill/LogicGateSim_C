@@ -3,23 +3,24 @@
 #include "main.h"
 #include <stdio.h>
 
-int main()
-{
+int main() {
     SimulationState *state = simulation_init();
     RenderContext *context = init_renderer();
 
-    if (!state || !context)
-    {
+    if (!state || !context) {
         printf("Failed to initialize simulation or renderer\n");
         return 1;
     }
 
-    while (state->is_running)
-    {
+    while (state->is_running) {
         SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
+        while (SDL_PollEvent(&event)) {
             simulation_handle_input(state, &event);
+        }
+        if (state->should_reset) {
+            simulation_cleanup(state);
+            state = simulation_init();
+            continue; 
         }
 
         simulation_update(state);

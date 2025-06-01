@@ -8,6 +8,8 @@
 typedef struct SimulationState
 {
     int is_running;
+    int should_reset;
+
     DynamicArray *nodes;
     DynamicArray *connections;
     DynamicArray *buttons;
@@ -23,6 +25,7 @@ typedef struct SimulationState
         int is_dragging;
         int drag_offset_x;
         int drag_offset_y;
+        int is_paused;
     } input;
     Node *dragged_node;
 
@@ -34,7 +37,7 @@ typedef struct SimulationState
 typedef struct Button
 {
     SDL_Rect rect;
-    const char *name;
+    char *name;
     void *function_data;
     void (*on_press)(SimulationState *state, void *function_data); // Function pointer for button press action
 } Button;
@@ -49,5 +52,7 @@ void check_left_click(SimulationState *state);
 void check_right_click(SimulationState *state);
 void check_motion_pos(SimulationState *state);
 void one_step(SimulationState *state, void *function_data);
+void toggle_play_pause(SimulationState *state, void *function_data);
+void reset_sim(SimulationState *state, void *function_data);
 
 #endif // SIMULATION_H

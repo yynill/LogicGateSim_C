@@ -301,8 +301,8 @@ void render_connection(RenderContext *context, Connection *con) {
     int x2 = parent2->rect.x + con->p2->x + PIN_SIZE / 2;
     int y2 = parent2->rect.y + con->p2->y + PIN_SIZE / 2;
 
-    if (con->state) SDL_SetRenderDrawColor(context->renderer, 0, 200, 103, 255);
-    else SDL_SetRenderDrawColor(context->renderer, 0, 0, 30, 255);
+    if (con->state) {SDL_SetRenderDrawColor(context->renderer, 0, 200, 103, 255);}
+    else {SDL_SetRenderDrawColor(context->renderer, 0, 0, 30, 255);}
 
     int thickness = 4;
     for (int i = -thickness/2; i <= thickness/2; i++) {
@@ -324,6 +324,12 @@ void render(RenderContext *context, SimulationState *sim_state)
 
     for (int i = 0; i < sim_state->buttons->size; i++) {
         Button *button = array_get(sim_state->buttons, i);
+
+        if (strncmp(button->name, "/assets/images/play.png", 23) == 0 && !sim_state->input.is_paused){
+            button->name = "/assets/images/pause.png";}
+        if (strncmp(button->name, "/assets/images/pause.png", 24) == 0 && sim_state->input.is_paused){
+            button->name = "/assets/images/play.png";}
+
         assert(button != NULL && "Button must not be NULL");
         render_button(context, button);
     }

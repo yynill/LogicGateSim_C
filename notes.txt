@@ -4,27 +4,19 @@
 
 
 📋 add and imolement buttona
-    Step
-    Back (cmd Z) is hard but i heared its like some tree generation - good practice.
-    Auto Play / Pause -  (x stpes per sec) 
-    Speed Control (+ - button)
-    Reset
-    download graph into a file and load later (really cool stuff)
-
-✅ different colours for nodes
-✅ switches and lights
-✅ different number of pins for nodes
-
-✅ simulate 1 step
-✅ implement logic gate logic 
-✅ visually show logic in cables ? and node? 
+    ✅ Step
+    📋 Back (cmd Z) is hard but i heared its like some tree generation - good practice.
+    ✅ Auto Play / Pause -  (x stpes per sec) 
+    📋 Speed Control (+ - button)
+    ✅ Reset
+    📋 download graph into a file and load later (really cool stuff)
 
 
 📋 render cables nice with snapping and corners and such + dragging ?
 📋 cut cables with right click knive would be cool or something
+📋 cut delete nodes drag over trash can
 📋 select multiple 
 📋 copy paste multiple
-📋 delete nodes 
 📋 zoom  
 📋 middle mouse scroll around  
 
