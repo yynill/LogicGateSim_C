@@ -35,7 +35,7 @@ int point_orient(Point a, Point b, Point c) {
 }
 
 // check if two segments lines intersect
-int properInter(Point a, Point b, Point c, Point d, Point *out) {
+int segment_intersection(Point a, Point b, Point c, Point d, Point *out) {
     double oa = point_orient(c, d, a);
     double ob = point_orient(c, d, b);
     double oc = point_orient(a, b, c);

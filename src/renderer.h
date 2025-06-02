@@ -8,7 +8,7 @@
 
 #define TOP_BAR_HEIGHT 48
 
-#define WINDOW_WIDTH 1000
+#define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT ((800) + TOP_BAR_HEIGHT) 
 
 #define NODE_WIDTH 78

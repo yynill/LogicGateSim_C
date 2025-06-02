@@ -34,93 +34,35 @@ SimulationState *simulation_init(void) {
     state->knife_stroke = array_create(16, sizeof(SDL_Point));
     assert(state->knife_stroke != NULL && "Failed to create knife_stroke array");
 
-    Button add_node_button = {
-        .rect = {10, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
-        .name = "AND",
-        .function_data = andGate,
-        .on_press = add_node,
-    };
-    array_add(state->buttons, &add_node_button);
-    
-    Button or_node_button = {
-        .rect = {80, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
-        .name = "OR",
-        .function_data = orGate,
-        .on_press = add_node,
-    };
-    array_add(state->buttons, &or_node_button);
+    Button node_buttons[] = {
+        {{10, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "NOT", notGate, add_node},
+        {{80, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "AND", andGate, add_node},
+        {{150, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "OR", orGate, add_node},
+        {{220, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "XOR", xorGate, add_node},
+        {{290, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "XNOR", xnorGate, add_node},
+        {{360, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "NOR", norGate, add_node},
+        {{430, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "NAND", nandGate, add_node},
 
-    Button not_node_button = {
-        .rect = {150, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
-        .name = "NOT",
-        .function_data = notGate,
-        .on_press = add_node,
-    };
-    array_add(state->buttons, &not_node_button);
+        {{550, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "LIGHT", nullGate, add_node},
+        {{620, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "SWITCH", nullGate, add_node}};
 
-    Button nor_node_button = {
-        .rect = {220, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
-        .name = "NOR",
-        .function_data = norGate,
-        .on_press = add_node,
-    };
-    array_add(state->buttons, &nor_node_button);
+    int node_button_count = sizeof(node_buttons) / sizeof(Button);
+    for (int i = 0; i < node_button_count; ++i)
+    {
+        array_add(state->buttons, &node_buttons[i]);
+    }
 
-    Button nand_node_button = {
-        .rect = {290, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
-        .name = "NAND",
-        .function_data = nandGate,
-        .on_press = add_node,
-    };
-    array_add(state->buttons, &nand_node_button);
+    Button control_buttons[] = {
+        {{WINDOW_WIDTH - 4 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/step_back.png", nullGate, null_function},
+        {{WINDOW_WIDTH - 3 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/play.png", nullGate, toggle_play_pause},
+        {{WINDOW_WIDTH - 2 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/step_forth.png", nullGate, one_step},
+        {{WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/reload.png", nullGate, reset_sim}};
 
-    Button light_button = {
-        .rect = {380, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
-        .name = "LIGHT",
-        .function_data = nullGate,
-        .on_press = add_node,
-    };
-    array_add(state->buttons, &light_button);
-
-    Button switch_button = {
-        .rect = {450, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
-        .name = "SWITCH",
-        .function_data = nullGate,
-        .on_press = add_node,
-    };
-    array_add(state->buttons, &switch_button);
-
-    Button step_back_button = {
-        .rect = {WINDOW_WIDTH - 4 * (BUTTON_HEIGHT + 10), 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
-        .name = "/assets/images/step_back.png",
-        .function_data = nullGate,
-        .on_press = null_function,
-    };
-    array_add(state->buttons, &step_back_button);
-
-    Button play_button = {
-        .rect = {WINDOW_WIDTH - 3 * (BUTTON_HEIGHT + 10), 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
-        .name = "/assets/images/play.png",
-        .function_data = nullGate,
-        .on_press = toggle_play_pause,
-    };
-    array_add(state->buttons, &play_button);
-
-    Button step_forth_button = {
-        .rect = {WINDOW_WIDTH - 2 * (BUTTON_HEIGHT + 10), 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
-        .name = "/assets/images/step_forth.png",
-        .function_data = nullGate,
-        .on_press = one_step,
-    };
-    array_add(state->buttons, &step_forth_button);
-
-    Button reload_button = {
-        .rect = {WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) - 10, 10, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2},
-        .name = "/assets/images/reload.png",
-        .function_data = nullGate,
-        .on_press = reset_sim,
-    };
-    array_add(state->buttons, &reload_button);
+    int control_button_count = sizeof(control_buttons) / sizeof(Button);
+    for (int i = 0; i < control_button_count; ++i)
+    {
+        array_add(state->buttons, &control_buttons[i]);
+    }
 
     Button trash_button = {
         .rect = {WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), WINDOW_HEIGHT - BUTTON_HEIGHT - 10, BUTTON_HEIGHT, BUTTON_HEIGHT},
@@ -280,7 +222,7 @@ void connection_stroke_intersection(SimulationState *state) {
             Point d = {con->p2->parent_node->rect.x + con->p2->x, con->p2->parent_node->rect.y + con->p2->y};
             Point out;
 
-            if (properInter(a, b, c, d, &out)) {array_remove_at(state->connections, j);}
+            if (segment_intersection(a, b, c, d, &out)) {array_remove_at(state->connections, j);}
         }
     }
 }

@@ -30,14 +30,37 @@ typedef struct Connection
     int state;
 } Connection;
 
-// node operations
+/* basic node operations */
 
 static inline int nullGate(int a, int b) { (void)a; (void)b; return 0; } 
-static inline int andGate(int a, int b) { return a && b; }
-static inline int orGate(int a, int b) { return a || b; }
-static inline int notGate(int a, int b) { (void)b; return !a; }
-static inline int norGate(int a, int b) { return !(a || b); }
+
+// Basic logic gates
+static inline int notGate(int a, int b)  { (void)b; return !a; }
+static inline int andGate(int a, int b)  { return a && b; }
 static inline int nandGate(int a, int b) { return !(a && b); }
+static inline int orGate(int a, int b)   { return a || b; }
+static inline int norGate(int a, int b)  { return !(a || b); }
+static inline int xorGate(int a, int b)  { return a != b; }
+static inline int xnorGate(int a, int b) { return a == b; }
+
+/* todo: dont see the value in implementing them 
+
+// Constant gates
+static inline int falseGate(int a, int b) { (void)a; (void)b; return 0; }
+static inline int trueGate(int a, int b)  { (void)a; (void)b; return 1; }
+
+// Implication gates
+static inline int implyFirstGate(int a, int b)  { return !a || b; } // A ⇒ B
+static inline int nimplyFirstGate(int a, int b) { return a && !b; } // A ↛ B
+static inline int implySecondGate(int a, int b) { return !b || a; } // B ⇒ A
+static inline int nimplySecondGate(int a, int b){ return b && !a; } // B ↛ A
+
+// Identity gates
+static inline int firstGate(int a, int b)     { (void)b; return a; }
+static inline int notFirstGate(int a, int b)  { (void)b; return !a; }
+static inline int secondGate(int a, int b)    { (void)a; return b; }
+static inline int notSecondGate(int a, int b) { (void)a; return !b; }
+*/
 
 // functions
 void print_node(Node *node);

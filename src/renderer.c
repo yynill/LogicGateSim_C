@@ -247,6 +247,8 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         else if (strcmp(node->name, "NOT") == 0) SDL_SetRenderDrawColor(context->renderer, 128, 0, 0, 255);
         else if (strcmp(node->name, "NOR") == 0) SDL_SetRenderDrawColor(context->renderer, 128, 0, 128, 255);
         else if (strcmp(node->name, "NAND") == 0) SDL_SetRenderDrawColor(context->renderer, 0, 0, 128, 255);
+        else if (strcmp(node->name, "XOR") == 0) SDL_SetRenderDrawColor(context->renderer, 255, 20, 147, 255);
+        else if (strcmp(node->name, "XNOR") == 0) SDL_SetRenderDrawColor(context->renderer, 0, 139, 139, 255);
         else  SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, 255);
         
         SDL_RenderFillRect(context->renderer, &node_rect);

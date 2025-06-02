@@ -14,4 +14,4 @@ Point point_subtract(Point a, Point b);
 Point point_multiply(Point a, double k);
 Point point_divide(Point a, double k);
 int point_orient(Point a, Point b, Point c);
-int properInter(Point a, Point b, Point c, Point d, Point *out);
+int segment_intersection(Point a, Point b, Point c, Point d, Point *out);

@@ -1,7 +1,7 @@
 
 -----------Bugs-----------
-🐞 when i connect 2 cables from different outputs to a inout, to a not gate for eaxmple, it only reacts to one of the both iputs. when it should react as if it was alittle or gate.
-
+-> 🐞 when i connect 2 cables from different outputs to a inout, to a not gate for eaxmple, it only reacts to one of the both iputs. when it should react as if it was alittle or gate.
+-> 🐞 remving nodes or connections fucks up future connections or something like that
 
 
 -----------features-----------
@@ -9,23 +9,21 @@
     📋 Back (cmd Z) is hard but i heared its like some tree generation - good practice.
     📋 Speed Control (+ - button)
 
-📋 add xor gate 
+✅ add xor gate 
 📋 aAdd a clock component
 
-✅ cut cables with right click knive would be cool or something
-✅ cut delete nodes drag over trash can
-📋 render cables nice with snapping and corners and such + dragging ?
+📋 render cables nice with snapping and corners and such + dragging ? (cubic bezier curve)
 📋 select multiple 
 📋 copy paste multiple
 📋 zoom  
 📋 middle mouse scroll around  
 
-📋 Boolean algebra simplifier which reduces logic to fewest gates
-📋 maybe even basic compiler??? dream big huh
-📋 download graph into a file and load later (really cool stuff) (.blif file parsing)
 📋 make costum components, where i can double click like node group. costum names. and double click to get out. 
 📋 Build a library of components containing their own logic and having arbtrary number of sources and sinks
+📋 download graph into a file and load later (really cool stuff) (.blif file parsing)
+📋 Boolean algebra simplifier which reduces logic to fewest gates
 📋 Mini computer. with instruction set. that can be run. Instruction inpit element 
+📋 maybe even basic compiler??? dream big huh
 
 
 -----------structural -----------
@@ -41,5 +39,3 @@
 ####################################
 ## ✅ completed - 🐞 bug - 📋 todo ##
 ####################################
-
-oh fuck i got bored of this now and want to build a server fram scratch and optimize the shit out of it with data sending lulu 
