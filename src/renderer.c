@@ -206,8 +206,22 @@ void render_button(RenderContext *context, Button *button) {
     }
 }
 
+void render_knife_stroke(RenderContext *context, SimulationState *sim_state){
+    assert(context != NULL);
+    assert(sim_state != NULL);
+    SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255);
+
+    for (int i = 0; i < sim_state->knife_stroke->size - 1; i++) {
+        SDL_Point *p1 = array_get(sim_state->knife_stroke, i);
+        SDL_Point *p2 = array_get(sim_state->knife_stroke, i + 1);
+
+        SDL_RenderDrawLine(context->renderer, p1->x, p1->y, p2->x, p2->y);
+    }
+}
+
 void render_node(RenderContext *context, Node *node, SimulationState *sim_state) {
     assert(context != NULL);
+    assert(node != NULL);
     assert(sim_state != NULL);
 
     SDL_Rect node_rect = node->rect;
@@ -325,14 +339,15 @@ void render(RenderContext *context, SimulationState *sim_state)
     for (int i = 0; i < sim_state->buttons->size; i++) {
         Button *button = array_get(sim_state->buttons, i);
 
-        if (strncmp(button->name, "/assets/images/play.png", 23) == 0 && !sim_state->input.is_paused){
-            button->name = "/assets/images/pause.png";}
-        if (strncmp(button->name, "/assets/images/pause.png", 24) == 0 && sim_state->input.is_paused){
-            button->name = "/assets/images/play.png";}
+        if (strncmp(button->name, "/assets/images/play.png", 23) == 0 && !sim_state->input.is_paused) { button->name = "/assets/images/pause.png"; }
+        if (strncmp(button->name, "/assets/images/pause.png", 24) == 0 && sim_state->input.is_paused) { button->name = "/assets/images/play.png"; }
+        if (strncmp(button->name, "/assets/images/trash.png", 24) == 0 && !sim_state->dragged_node) { continue; }
 
         assert(button != NULL && "Button must not be NULL");
         render_button(context, button);
     }
+
+    render_knife_stroke(context, sim_state);
 
     for (int i = 0; i < sim_state->connections->size; i++) {
         Connection *connection = array_get(sim_state->connections, i);

@@ -14,6 +14,9 @@ typedef struct SimulationState
     DynamicArray *connections;
     DynamicArray *buttons;
 
+    Uint32 last_knife_record_time;
+    DynamicArray *knife_stroke; // SDL_Point
+
     struct
     {
         int left_mouse_down;
@@ -28,6 +31,7 @@ typedef struct SimulationState
         int is_paused;
     } input;
     Node *dragged_node;
+    Node *last_dragged_node;
 
     Pin *hovered_pin;
     // todo add last selcted pin or drag system
@@ -51,6 +55,8 @@ void add_node(SimulationState *state, void *function_data);
 void check_left_click(SimulationState *state);
 void check_right_click(SimulationState *state);
 void check_motion_pos(SimulationState *state);
+void check_left_mouse_up(SimulationState *state);
+void check_right_mouse_up(SimulationState *state);
 void one_step(SimulationState *state, void *function_data);
 void toggle_play_pause(SimulationState *state, void *function_data);
 void reset_sim(SimulationState *state, void *function_data);

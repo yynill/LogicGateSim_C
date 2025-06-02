@@ -5,6 +5,8 @@
 #include "DynamicArray.h"
 #include "renderer.h"
 #include <assert.h>
+#include "point.h"
+
 
 void null_function(SimulationState *state, void *function_data){
     (void)state;
@@ -28,6 +30,9 @@ SimulationState *simulation_init(void) {
 
     state->buttons = array_create(16, sizeof(Button));
     assert(state->buttons != NULL && "Failed to create buttons array");
+
+    state->knife_stroke = array_create(16, sizeof(SDL_Point));
+    assert(state->knife_stroke != NULL && "Failed to create knife_stroke array");
 
     Button add_node_button = {
         .rect = {10, 10, BUTTON_WIDTH, BUTTON_HEIGHT},
@@ -117,6 +122,14 @@ SimulationState *simulation_init(void) {
     };
     array_add(state->buttons, &reload_button);
 
+    Button trash_button = {
+        .rect = {WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), WINDOW_HEIGHT - BUTTON_HEIGHT - 10, BUTTON_HEIGHT, BUTTON_HEIGHT},
+        .name = "/assets/images/trash.png",
+        .function_data = nullGate,
+        .on_press = null_function,
+    };
+    array_add(state->buttons, &trash_button);
+
     state->input.left_mouse_down = 0;
     state->input.mouse_up = 0;
     state->input.mouse_x = 0;
@@ -194,7 +207,15 @@ void simulation_handle_input(SimulationState *state, SDL_Event *event) {
             state->input.mouse_x = event->button.x;
             state->input.mouse_y = event->button.y;
             state->input.is_dragging = 0;
+            state->last_dragged_node = state->dragged_node;
             state->dragged_node = NULL;
+            check_left_mouse_up(state);
+            break;
+        }
+        if (event->button.button == SDL_BUTTON_RIGHT)
+        {
+            state->input.right_mouse_down = 0;
+            check_right_mouse_up(state);
             break;
         }
 
@@ -241,14 +262,79 @@ void add_node(SimulationState *state, void *function_data) {
     assert(state->nodes->size > 0 && "Node should be added to array");
 }
 
+void connection_stroke_intersection(SimulationState *state) {
+    assert(state != NULL);
+    assert(state->connections != NULL);
+    assert(state->knife_stroke != NULL);
+
+    for (int i = 0; i < state->knife_stroke->size - 1; i++) {
+        SDL_Point *p1 = array_get(state->knife_stroke, i);
+        SDL_Point *p2 = array_get(state->knife_stroke, i + 1);
+
+        for (int j = state->connections->size - 1; j >= 0; j--) {
+            Connection *con = array_get(state->connections, j);
+
+            Point a = {p1->x, p1->y};
+            Point b = {p2->x, p2->y};
+            Point c = {con->p1->parent_node->rect.x + con->p1->x, con->p1->parent_node->rect.y + con->p1->y};
+            Point d = {con->p2->parent_node->rect.x + con->p2->x, con->p2->parent_node->rect.y + con->p2->y};
+            Point out;
+
+            if (properInter(a, b, c, d, &out)) {array_remove_at(state->connections, j);}
+        }
+    }
+}
+
+void check_right_mouse_up(SimulationState *state) {
+    assert(state != NULL && "Cannot update NULL state");
+    connection_stroke_intersection(state);
+    array_clear(state->knife_stroke);
+}
+
+void check_left_mouse_up(SimulationState *state) {
+    assert(state != NULL && "Cannot update NULL state");
+    assert(state->buttons != NULL && "Buttons array must be initialized");
+
+    // trash button area
+    if (state->input.mouse_x >= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) && state->input.mouse_x <= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) + BUTTON_HEIGHT  &&
+        state->input.mouse_y >= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 && state->input.mouse_y <= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 + BUTTON_HEIGHT) {
+        
+        for (int i = state->connections->size - 1; i >= 0; i--) {
+            Connection *con = array_get(state->connections, i);
+            if (con->p1->parent_node == state->last_dragged_node || con->p2->parent_node == state->last_dragged_node) {
+                array_remove_at(state->connections, i);
+            }
+        }
+
+        for (int i = 0; i < state->nodes->size; i++) {
+            Node *node = array_get(state->nodes, i);
+            if (node == state->last_dragged_node) {
+                array_remove_at(state->nodes, i);
+                state->last_dragged_node = NULL;
+                break;
+            }
+        }
+    }
+}
+
 void check_motion_pos(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
     assert(state->nodes != NULL && "Nodes array must be initialized");
     assert(state->buttons != NULL && "Buttons array must be initialized");
     
-    state->hovered_pin = NULL;
+    // Knife-Stroke
+    if (state->input.right_mouse_down) {
+        Uint32 now = SDL_GetTicks();
+        if (now - state->last_knife_record_time > 20) {
+            SDL_Point point = {state->input.mouse_x, state->input.mouse_y};
+            array_add(state->knife_stroke, &point);
+            state->last_knife_record_time = now;
+        }
+    }
     
+    // pin hover
     // todo: chunk based checks to not for loop over all items for mouse.
+    state->hovered_pin = NULL;
     for (int i = 0; i < state->nodes->size; i++) {
         Node *node = array_get(state->nodes, i);
 

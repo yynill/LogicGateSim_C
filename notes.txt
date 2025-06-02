@@ -1,26 +1,42 @@
 
-
+-----------Bugs-----------
 🐞 when i connect 2 cables from different outputs to a inout, to a not gate for eaxmple, it only reacts to one of the both iputs. when it should react as if it was alittle or gate.
 
-📋 add and imolement buttona
-    ✅ Step
+
+
+-----------features-----------
+📋 add and implement buttons
     📋 Back (cmd Z) is hard but i heared its like some tree generation - good practice.
-    ✅ Auto Play / Pause -  (x stpes per sec) 
     📋 Speed Control (+ - button)
-    ✅ Reset
-    📋 download graph into a file and load later (really cool stuff)
 
+📋 add xor gate 
+📋 aAdd a clock component
 
+✅ cut cables with right click knive would be cool or something
+✅ cut delete nodes drag over trash can
 📋 render cables nice with snapping and corners and such + dragging ?
-📋 cut cables with right click knive would be cool or something
-📋 cut delete nodes drag over trash can
 📋 select multiple 
 📋 copy paste multiple
 📋 zoom  
 📋 middle mouse scroll around  
 
+📋 Boolean algebra simplifier which reduces logic to fewest gates
+📋 maybe even basic compiler??? dream big huh
+📋 download graph into a file and load later (really cool stuff) (.blif file parsing)
+📋 make costum components, where i can double click like node group. costum names. and double click to get out. 
+📋 Build a library of components containing their own logic and having arbtrary number of sources and sinks
+📋 Mini computer. with instruction set. that can be run. Instruction inpit element 
+
+
+-----------structural -----------
+📋 typedef enum { GATE_NULL ...}
+📋 split inout handeling from sim
 📋 change void functions to int to check if sucessful
-is there a way to do this without looping over every pin - yes chunkng for mouse cursor. check and loop only the ones in neighbouring chunks
+
+
+-----------optimizations-----------
+📋 is there a way to do this without looping over every pin - yes chunkng for mouse cursor. check and loop only the ones in neighbouring chunks
+
 
 ####################################
 ## ✅ completed - 🐞 bug - 📋 todo ##

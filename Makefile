@@ -20,7 +20,8 @@ MAIN_SRC = src/main.c \
            src/simulation.c \
            src/renderer.c \
 		   src/DynamicArray.c \
-		   src/node.c
+		   src/node.c \
+		   src/point.c
 
 MAIN_OBJ = $(MAIN_SRC:.c=.o)
 MAIN_TARGET = main

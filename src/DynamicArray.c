@@ -32,6 +32,12 @@ void array_free(DynamicArray *arr)
     free(arr);
 }
 
+void array_clear(DynamicArray *arr)
+{
+    assert(arr != NULL);
+    arr->size = 0;
+}
+
 void array_add(DynamicArray *arr, void *element) // todo; remove array add and replcaw with direct inserts using array_add_uninitialized
 {
     assert(arr != NULL);

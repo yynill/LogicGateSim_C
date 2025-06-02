@@ -6,6 +6,8 @@
         "renderer.h": "c",
         "simulation.h": "c",
         "dynamicarray.h": "c",
-        "assert.h": "c"
+        "assert.h": "c",
+        "point.h": "c",
+        "stdio.h": "c"
     }
 }
