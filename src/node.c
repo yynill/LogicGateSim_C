@@ -106,6 +106,15 @@ void run_node(Node *node)
     }
 }
 
+void set_input_zero(Connection *con) {
+    assert(con != NULL);
+    assert(con->p1 != NULL && con->p2 != NULL);
+    assert(con->p1->is_input != con->p2->is_input);
+
+    Pin *in_pin = con->p1->is_input ? con->p1 : con->p2;
+
+    in_pin->state = 0;
+}
 
 void propagate_state(Connection *con) {
     assert(con != NULL);
@@ -115,7 +124,7 @@ void propagate_state(Connection *con) {
     Pin *out_pin = con->p1->is_input ? con->p2 : con->p1;
     Pin *in_pin  = con->p1->is_input ? con->p1 : con->p2;
 
-    in_pin->state = out_pin->state;
+    in_pin->state |= out_pin->state;
     con->state = out_pin->state;
 }
 
@@ -158,14 +167,14 @@ void print_connection(Connection *con) {
     Node *to_node   = con->p2->parent_node;
 
     printf("Connection (%p):\n", (void *)con);
-    printf("  From Node: %s (%p) | Pin (%p) State: %d | Pin Type: %s\n",
+    printf("  Node: %s (%p) | Pin (%p) State: %d | Pin Type: %s\n",
            from_node ? from_node->name : "NULL",
            (void *)from_node,
            (void *)con->p1,
            con->p1->state,
            con->p1->is_input ? "INPUT" : "OUTPUT");
 
-    printf("  To Node:   %s (%p) | Pin (%p) State: %d | Pin Type: %s\n",
+    printf("  Node:   %s (%p) | Pin (%p) State: %d | Pin Type: %s\n",
            to_node ? to_node->name : "NULL",
            (void *)to_node,
            (void *)con->p2,

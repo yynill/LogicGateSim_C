@@ -67,6 +67,7 @@ void print_node(Node *node);
 void print_connection(Connection *con);
 void run_node(Node *node);
 void propagate_state(Connection *con);
+void set_input_zero(Connection *con);
 
 Connection *create_connection(Pin *pin1, Pin *pin2);
 Pin *create_pin(int x, int y, int ii, Node *parent_node);

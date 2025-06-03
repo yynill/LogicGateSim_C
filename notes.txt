@@ -1,18 +1,13 @@
 
 -----------Bugs-----------
--> 🐞 when i connect 2 cables from different outputs to a inout, to a not gate for eaxmple, it only reacts to one of the both iputs. when it should react as if it was alittle or gate.
-✅ remving nodes or connections fucks up future connections or something like that
-        deleting cables works fine, but deleting a node causes all nodes to shift: nodes to the right of the deleted one move left.
-        Because of this shift, connections now point to the wrong nodes
-        Solution: 
-        change from dynamic array of elemets to pointers. so the pins under pointers dont shift around
+✅ when i connect 2 cables from different outputs to a inout, to a not gate for eaxmple, it only reacts to one of the both iputs. when it should react as if it was alittle or gate.
+
 
 -----------features-----------
 📋 add and implement buttons
     📋 Back (cmd Z) is hard but i heared its like some tree generation - good practice.
     📋 Speed Control (+ - button)
 
-✅ add xor gate 
 📋 aAdd a clock component
 
 📋 render cables nice with snapping and corners and such + dragging ? (cubic bezier curve)

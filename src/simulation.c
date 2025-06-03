@@ -357,15 +357,21 @@ void one_step(SimulationState *state, void *function_data) {
 
     for (int i = 0; i < state->nodes->size; i++) {
         Node *node = array_get(state->nodes, i);
-        // print_node(node);
+        print_node(node);
         run_node(node);
     }
 
     for (int i = 0; i < state->connections->size; i++) {
         Connection *con = array_get(state->connections, i);
-        propagate_state(con);
-        // print_connection(con);
+        set_input_zero(con);
     }
+
+    for (int i = 0; i < state->connections->size; i++) {
+        Connection *con = array_get(state->connections, i);
+        propagate_state(con);
+    }
+
+    printf("\n\n\n");
 }
 
 void toggle_play_pause(SimulationState *state, void *function_data) {
