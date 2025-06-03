@@ -2,7 +2,7 @@
 #define NODE_H
 
 #include <SDL2/SDL.h>
-#include "DynamicArray.h"
+#include "DataStructures/DynamicArray.h"
 
 typedef int (Operation)(int, int);
 typedef struct SimulationState SimulationState;
@@ -65,8 +65,11 @@ static inline int notSecondGate(int a, int b) { (void)a; return !b; }
 // functions
 void print_node(Node *node);
 void print_connection(Connection *con);
-int insert_node(SimulationState *state, int num_inputs, int num_outputs, Operation op, SDL_Rect rect, const char *name);
 void run_node(Node *node);
 void propagate_state(Connection *con);
+
+Connection *create_connection(Pin *pin1, Pin *pin2);
+Pin *create_pin(int x, int y, int ii, Node *parent_node);
+Node *create_node(int num_inputs, int num_outputs, Operation op, SDL_Rect rect, const char *name);
 
 #endif // NODE_H

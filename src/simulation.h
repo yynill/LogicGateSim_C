@@ -2,8 +2,9 @@
 #define SIMULATION_H
 
 #include <SDL2/SDL.h>
-#include "DynamicArray.h"
+#include "DataStructures/DynamicArray.h"
 #include "node.h"
+#include "button.h"
 
 typedef struct SimulationState
 {
@@ -37,14 +38,6 @@ typedef struct SimulationState
     // todo add last selcted pin or drag system
     Pin *first_selected_pin;
 } SimulationState;
-
-typedef struct Button
-{
-    SDL_Rect rect;
-    char *name;
-    void *function_data;
-    void (*on_press)(SimulationState *state, void *function_data); // Function pointer for button press action
-} Button;
 
 // Function declarations
 SimulationState *simulation_init(void);

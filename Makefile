@@ -17,10 +17,11 @@ LDFLAGS = -L/opt/homebrew/opt/sdl2/lib -L/opt/homebrew/opt/sdl2_ttf/lib -L/opt/h
 
 # Main program configuration
 MAIN_SRC = src/main.c \
+		   src/DataStructures/DynamicArray.c \
            src/simulation.c \
            src/renderer.c \
-		   src/DynamicArray.c \
 		   src/node.c \
+		   src/button.c \
 		   src/point.c
 
 MAIN_OBJ = $(MAIN_SRC:.c=.o)

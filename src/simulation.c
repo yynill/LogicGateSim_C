@@ -2,7 +2,7 @@
 #include "main.h"
 #include <stdio.h>
 #include <string.h>
-#include "DynamicArray.h"
+#include "DataStructures/DynamicArray.h"
 #include "renderer.h"
 #include <assert.h>
 #include "point.h"
@@ -22,55 +22,34 @@ SimulationState *simulation_init(void) {
 
     state->is_running = 1;
 
-    state->nodes = array_create(16, sizeof(Node));
+    state->nodes = array_create(16);
     assert(state->nodes != NULL && "Failed to create nodes array");
 
-    state->connections = array_create(16, sizeof(Connection));
+    state->connections = array_create(16);
     assert(state->connections != NULL && "Failed to create connections array");
 
-    state->buttons = array_create(16, sizeof(Button));
+    state->buttons = array_create(16);
     assert(state->buttons != NULL && "Failed to create buttons array");
 
-    state->knife_stroke = array_create(16, sizeof(SDL_Point));
+    state->knife_stroke = array_create(16);
     assert(state->knife_stroke != NULL && "Failed to create knife_stroke array");
 
-    Button node_buttons[] = {
-        {{10, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "NOT", notGate, add_node},
-        {{80, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "AND", andGate, add_node},
-        {{150, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "OR", orGate, add_node},
-        {{220, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "XOR", xorGate, add_node},
-        {{290, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "XNOR", xnorGate, add_node},
-        {{360, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "NOR", norGate, add_node},
-        {{430, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "NAND", nandGate, add_node},
+    array_add(state->buttons, create_button((SDL_Rect){10, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "NOT", notGate, add_node));
+    array_add(state->buttons, create_button((SDL_Rect){80, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "AND", andGate, add_node));
+    array_add(state->buttons, create_button((SDL_Rect){150, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "OR", orGate, add_node));
+    array_add(state->buttons, create_button((SDL_Rect){220, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "XOR", xorGate, add_node));
+    array_add(state->buttons, create_button((SDL_Rect){290, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "XNOR", xnorGate, add_node));
+    array_add(state->buttons, create_button((SDL_Rect){360, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "NOR", norGate, add_node));
+    array_add(state->buttons, create_button((SDL_Rect){430, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "NAND", nandGate, add_node));
+    array_add(state->buttons, create_button((SDL_Rect){550, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "LIGHT", nullGate, add_node));
+    array_add(state->buttons, create_button((SDL_Rect){620, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "SWITCH", nullGate, add_node));
 
-        {{550, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "LIGHT", nullGate, add_node},
-        {{620, 10, BUTTON_WIDTH, BUTTON_HEIGHT}, "SWITCH", nullGate, add_node}};
-
-    int node_button_count = sizeof(node_buttons) / sizeof(Button);
-    for (int i = 0; i < node_button_count; ++i)
-    {
-        array_add(state->buttons, &node_buttons[i]);
-    }
-
-    Button control_buttons[] = {
-        {{WINDOW_WIDTH - 4 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/step_back.png", nullGate, null_function},
-        {{WINDOW_WIDTH - 3 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/play.png", nullGate, toggle_play_pause},
-        {{WINDOW_WIDTH - 2 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/step_forth.png", nullGate, one_step},
-        {{WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/reload.png", nullGate, reset_sim}};
-
-    int control_button_count = sizeof(control_buttons) / sizeof(Button);
-    for (int i = 0; i < control_button_count; ++i)
-    {
-        array_add(state->buttons, &control_buttons[i]);
-    }
-
-    Button trash_button = {
-        .rect = {WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), WINDOW_HEIGHT - BUTTON_HEIGHT - 10, BUTTON_HEIGHT, BUTTON_HEIGHT},
-        .name = "/assets/images/trash.png",
-        .function_data = nullGate,
-        .on_press = null_function,
-    };
-    array_add(state->buttons, &trash_button);
+    array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 4 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/step_back.png", nullGate, null_function));
+    array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 3 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/play.png", nullGate, toggle_play_pause));
+    array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 2 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/step_forth.png", nullGate, one_step));
+    array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/reload.png", nullGate, reset_sim));
+    
+    array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), WINDOW_HEIGHT - BUTTON_HEIGHT - 10, BUTTON_HEIGHT, BUTTON_HEIGHT}, "/assets/images/trash.png", nullGate, null_function));
 
     state->input.left_mouse_down = 0;
     state->input.mouse_up = 0;
@@ -98,9 +77,10 @@ void simulation_cleanup(SimulationState *state) {
 
     if (state)
     {
-        array_free(state->nodes);
-        array_free(state->connections);
-        array_free(state->buttons);
+        array_free_with_elements(state->nodes);
+        array_free_with_elements(state->connections);
+        array_free_with_elements(state->buttons);
+        array_free_with_elements(state->knife_stroke);
         free(state);
     }
 }
@@ -197,11 +177,7 @@ void add_node(SimulationState *state, void *function_data) {
         node_rect.w = SMALL_NODE_WIDTH;
     }
 
-    if(!insert_node(state, num_inputs, num_outputs, op, node_rect, button->name)){
-        printf("filed to add node\n");
-    }
-
-    assert(state->nodes->size > 0 && "Node should be added to array");
+    array_add(state->nodes, create_node(num_inputs, num_outputs, op, node_rect, button->name));
 }
 
 void connection_stroke_intersection(SimulationState *state) {
@@ -222,7 +198,10 @@ void connection_stroke_intersection(SimulationState *state) {
             Point d = {con->p2->parent_node->rect.x + con->p2->x, con->p2->parent_node->rect.y + con->p2->y};
             Point out;
 
-            if (segment_intersection(a, b, c, d, &out)) {array_remove_at(state->connections, j);}
+            if (segment_intersection(a, b, c, d, &out)) {
+                array_remove_at(state->connections, j);
+                free(con);
+            }
         }
     }
 }
@@ -230,7 +209,8 @@ void connection_stroke_intersection(SimulationState *state) {
 void check_right_mouse_up(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
     connection_stroke_intersection(state);
-    array_clear(state->knife_stroke);
+    array_free_with_elements(state->knife_stroke);
+    state->knife_stroke = array_create(16);
 }
 
 void check_left_mouse_up(SimulationState *state) {
@@ -245,6 +225,7 @@ void check_left_mouse_up(SimulationState *state) {
             Connection *con = array_get(state->connections, i);
             if (con->p1->parent_node == state->last_dragged_node || con->p2->parent_node == state->last_dragged_node) {
                 array_remove_at(state->connections, i);
+                free(con);
             }
         }
 
@@ -252,6 +233,7 @@ void check_left_mouse_up(SimulationState *state) {
             Node *node = array_get(state->nodes, i);
             if (node == state->last_dragged_node) {
                 array_remove_at(state->nodes, i);
+                free(node);
                 state->last_dragged_node = NULL;
                 break;
             }
@@ -268,12 +250,18 @@ void check_motion_pos(SimulationState *state) {
     if (state->input.right_mouse_down) {
         Uint32 now = SDL_GetTicks();
         if (now - state->last_knife_record_time > 20) {
-            SDL_Point point = {state->input.mouse_x, state->input.mouse_y};
-            array_add(state->knife_stroke, &point);
+            SDL_Point *point = malloc(sizeof(SDL_Point));
+            if (!point) {
+                printf("Out of memory!\n");
+                exit(EXIT_FAILURE);
+            }
+            point->x = state->input.mouse_x;
+            point->y = state->input.mouse_y;
+            array_add(state->knife_stroke, point);
             state->last_knife_record_time = now;
         }
     }
-    
+
     // pin hover
     // todo: chunk based checks to not for loop over all items for mouse.
     state->hovered_pin = NULL;
@@ -332,14 +320,8 @@ void check_left_click(SimulationState *state) {
             if (state->first_selected_pin == NULL) state->first_selected_pin = state->hovered_pin;
             else if(state->first_selected_pin->is_input == state->hovered_pin->is_input) state->first_selected_pin = NULL;
             else {
-                Connection new_con = {
-                    .p1 = state->first_selected_pin,
-                    .p2 = state->hovered_pin,
-                    // .state = 0,
-                };
+                array_add(state->connections, create_connection(state->first_selected_pin, state->hovered_pin));
                 state->first_selected_pin = NULL;
-                array_add(state->connections, &new_con);
-                // todo: set input of node b to output of node a
             }
         }
     }

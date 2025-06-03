@@ -2,37 +2,46 @@
 #include "renderer.h"
 #include <assert.h>
 
-Pin create_pin(int x, int y, int ii, Node *parent_node) {
-    Pin p;
-    p.x = x;
-    p.y = y;
-    p.is_input = ii;
-    p.parent_node = parent_node;
-    p.state = 0;
+Connection *create_connection(Pin *pin1, Pin *pin2) {
+    Connection *con = malloc(sizeof(Connection));
+    con->p1 = pin1;
+    con->p2 = pin2;
+    con->state = 0;
+    propagate_state(con);
+
+    return con;
+}
+
+
+Pin *create_pin(int x, int y, int ii, Node *parent_node) {
+    Pin *p = malloc(sizeof(Pin));
+    assert(p != NULL);
+    p->x = x;
+    p->y = y;
+    p->is_input = ii;
+    p->parent_node = parent_node;
+    p->state = 0;
     return p;
 }
 
-int insert_node(SimulationState *state, int num_inputs, int num_outputs, Operation op, SDL_Rect rect, const char *name) {
-    assert(state != NULL);
+Node *create_node(int num_inputs, int num_outputs, Operation op, SDL_Rect rect, const char *name) {
     assert(num_inputs >= 0 && num_outputs >= 0);
     assert(rect.w > 0 && rect.h > 0);
     assert(name != NULL);
 
-    Node *node = array_add_uninitialized(state->nodes);
+    Node *node = malloc(sizeof(Node));
     if (!node) {
         return 0;
     }
 
-    node->inputs = array_create(2, sizeof(Pin));
+    node->inputs = array_create(2);
     if (!node->inputs) {
-        array_remove_last(state->nodes);
         return 0;
     }
 
-    node->outputs = array_create(2, sizeof(Pin));
+    node->outputs = array_create(2);
     if (!node->outputs) {
-        array_free(node->inputs);
-        array_remove_last(state->nodes);
+        array_free_with_elements(node->inputs);
         return 0;
     }
 
@@ -41,16 +50,16 @@ int insert_node(SimulationState *state, int num_inputs, int num_outputs, Operati
     float start_y_inputs = (rect.h / 2.0f) - (total_inputs_height / 2.0f);
 
     for (int i = 0; i < num_inputs; i++) {
-        Pin p = create_pin(-PIN_SIZE / 2, start_y_inputs + i * (PIN_SIZE + spacing), 1, node);
-        array_add(node->inputs, &p);
+        Pin *p = create_pin(-PIN_SIZE / 2, start_y_inputs + i * (PIN_SIZE + spacing), 1, node);
+        array_add(node->inputs, p);
     }
 
     float total_outputs_height = num_outputs * PIN_SIZE + (num_outputs - 1) * spacing;
     float start_y_outputs = (rect.h / 2.0f) - (total_outputs_height / 2.0f);
 
     for (int i = 0; i < num_outputs; i++) {
-        Pin p = create_pin(rect.w - PIN_SIZE / 2, start_y_outputs + i * (PIN_SIZE + spacing), 0, node);
-        array_add(node->outputs, &p);
+        Pin *p = create_pin(rect.w - PIN_SIZE / 2, start_y_outputs + i * (PIN_SIZE + spacing), 0, node);
+        array_add(node->outputs, p);
     }
 
     node->operation = op;
@@ -59,7 +68,7 @@ int insert_node(SimulationState *state, int num_inputs, int num_outputs, Operati
 
     run_node(node);
 
-    return 1;
+    return node;
 }
 
 void run_node(Node *node)

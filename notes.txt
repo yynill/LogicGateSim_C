@@ -1,8 +1,11 @@
 
 -----------Bugs-----------
 -> 🐞 when i connect 2 cables from different outputs to a inout, to a not gate for eaxmple, it only reacts to one of the both iputs. when it should react as if it was alittle or gate.
--> 🐞 remving nodes or connections fucks up future connections or something like that
-
+✅ remving nodes or connections fucks up future connections or something like that
+        deleting cables works fine, but deleting a node causes all nodes to shift: nodes to the right of the deleted one move left.
+        Because of this shift, connections now point to the wrong nodes
+        Solution: 
+        change from dynamic array of elemets to pointers. so the pins under pointers dont shift around
 
 -----------features-----------
 📋 add and implement buttons
