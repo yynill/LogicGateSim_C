@@ -22,13 +22,16 @@ typedef struct SimulationState
     {
         int left_mouse_down;
         int right_mouse_down;
-        int mouse_up;
+        int middle_mouse_down;
         int mouse_x;
         int mouse_y;
 
-        int is_dragging;
+        int is_camera_dragging;
+
+        int is_node_dragging;
         int drag_offset_x;
         int drag_offset_y;
+        
         int is_paused;
     } input;
     Node *dragged_node;
@@ -43,15 +46,19 @@ typedef struct SimulationState
 SimulationState *simulation_init(void);
 void simulation_cleanup(SimulationState *state);
 void simulation_update(SimulationState *state);
-void simulation_handle_input(SimulationState *state, SDL_Event *event);
+void reset_sim(SimulationState *state, void *function_data);
+
+void null_function(SimulationState *state, void *function_data);
 void add_node(SimulationState *state, void *function_data);
-void check_left_click(SimulationState *state);
-void check_right_click(SimulationState *state);
-void check_motion_pos(SimulationState *state);
-void check_left_mouse_up(SimulationState *state);
-void check_right_mouse_up(SimulationState *state);
+void connection_stroke_intersection(SimulationState *state);
 void one_step(SimulationState *state, void *function_data);
 void toggle_play_pause(SimulationState *state, void *function_data);
-void reset_sim(SimulationState *state, void *function_data);
+
+void process_left_click(SimulationState *state);
+void process_right_click(SimulationState *state);
+void process_mouse_motion(SimulationState *state);
+void process_left_mouse_up(SimulationState *state);
+void process_right_mouse_up(SimulationState *state);
+
 
 #endif // SIMULATION_H

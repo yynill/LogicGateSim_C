@@ -1,19 +1,13 @@
 #include "simulation.h"
-#include "main.h"
-#include <stdio.h>
-#include <string.h>
+
 #include "DataStructures/DynamicArray.h"
+#include "main.h"
 #include "renderer.h"
-#include <assert.h>
 #include "point.h"
 
-
-void null_function(SimulationState *state, void *function_data){
-    (void)state;
-    (void)function_data;
-    printf("todo\n"); // todo: delete when others implememtned - just palce holder for now.
-    return;
-}
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
 
 SimulationState *simulation_init(void) {
     SimulationState *state = malloc(sizeof(SimulationState));
@@ -52,10 +46,9 @@ SimulationState *simulation_init(void) {
     array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), WINDOW_HEIGHT - BUTTON_HEIGHT - 10, BUTTON_HEIGHT, BUTTON_HEIGHT}, "/assets/images/trash.png", nullGate, null_function));
 
     state->input.left_mouse_down = 0;
-    state->input.mouse_up = 0;
     state->input.mouse_x = 0;
     state->input.mouse_y = 0;
-    state->input.is_dragging = 0;
+    state->input.is_node_dragging = 0;
     state->input.drag_offset_x = 0;
     state->input.drag_offset_y = 0;
     state->input.is_paused = 1;
@@ -85,72 +78,29 @@ void simulation_cleanup(SimulationState *state) {
     }
 }
 
-void simulation_handle_input(SimulationState *state, SDL_Event *event) {
-    assert(state != NULL && "Cannot handle input with NULL state");
-    assert(event != NULL && "Cannot handle NULL event");
+void reset_sim(SimulationState *state, void *function_data)
+{
+    assert(state != NULL);
+    (void)function_data;
+    state->should_reset = 1;
+}
 
-    switch (event->type) {
-    case SDL_QUIT:
-        state->is_running = 0;
-        break;
-
-    case SDL_MOUSEBUTTONDOWN:
-        if (event->button.button == SDL_BUTTON_LEFT) {
-
-            state->input.left_mouse_down = 1;
-            state->input.mouse_x = event->button.x;
-            state->input.mouse_y = event->button.y;
-            check_left_click(state);
-            break;
-        }
-        if (event->button.button == SDL_BUTTON_RIGHT) {
-
-            state->input.right_mouse_down = 1;
-            state->input.mouse_x = event->button.x;
-            state->input.mouse_y = event->button.y;
-            check_right_click(state);
-            break;
-        }
-
-
-    case SDL_MOUSEMOTION:
-        state->input.mouse_x = event->motion.x;
-        state->input.mouse_y = event->motion.y;
-        check_motion_pos(state);
-        
-        if (state->input.left_mouse_down) state->input.is_dragging = 1;
-        break;
-
-    case SDL_MOUSEBUTTONUP:
-        if (event->button.button == SDL_BUTTON_LEFT)
-        {
-
-            state->input.left_mouse_down = 0;
-            state->input.mouse_x = event->button.x;
-            state->input.mouse_y = event->button.y;
-            state->input.is_dragging = 0;
-            state->last_dragged_node = state->dragged_node;
-            state->dragged_node = NULL;
-            check_left_mouse_up(state);
-            break;
-        }
-        if (event->button.button == SDL_BUTTON_RIGHT)
-        {
-            state->input.right_mouse_down = 0;
-            check_right_mouse_up(state);
-            break;
-        }
-
-    case SDL_KEYDOWN:
-    case SDL_KEYUP:
-        switch (event->key.keysym.sym)
-        {
-        case SDLK_ESCAPE:
-            state->is_running = 0;
-            break;
-        }
-        break;
+void simulation_update(SimulationState *state) {
+    assert(state != NULL && "Cannot update NULL state");
+    if (state->input.is_node_dragging && state->dragged_node != NULL) {
+        state->dragged_node->rect.x = state->input.mouse_x - state->input.drag_offset_x;
+        state->dragged_node->rect.y = state->input.mouse_y - state->input.drag_offset_y;
     }
+    if (!state->input.is_paused) {
+        one_step(state, "");
+    }
+}
+
+void null_function(SimulationState *state, void *function_data) {
+    (void)state;
+    (void)function_data;
+    printf("todo\n"); // todo: delete when others implememtned - just palce holder for now.
+    return;
 }
 
 void add_node(SimulationState *state, void *function_data) {
@@ -206,42 +156,40 @@ void connection_stroke_intersection(SimulationState *state) {
     }
 }
 
-void check_right_mouse_up(SimulationState *state) {
-    assert(state != NULL && "Cannot update NULL state");
-    connection_stroke_intersection(state);
-    array_free_with_elements(state->knife_stroke);
-    state->knife_stroke = array_create(16);
+void toggle_play_pause(SimulationState *state, void *function_data) {
+    assert(state != NULL);
+    (void)function_data;
+
+    state->input.is_paused = !state->input.is_paused;
+    printf("state->input.is_paused: %d\n", state->input.is_paused);
 }
 
-void check_left_mouse_up(SimulationState *state) {
-    assert(state != NULL && "Cannot update NULL state");
-    assert(state->buttons != NULL && "Buttons array must be initialized");
+void one_step(SimulationState *state, void *function_data) {
+    assert(state != NULL);
+    (void)function_data;
 
-    // trash button area
-    if (state->input.mouse_x >= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) && state->input.mouse_x <= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) + BUTTON_HEIGHT  &&
-        state->input.mouse_y >= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 && state->input.mouse_y <= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 + BUTTON_HEIGHT) {
-        
-        for (int i = state->connections->size - 1; i >= 0; i--) {
-            Connection *con = array_get(state->connections, i);
-            if (con->p1->parent_node == state->last_dragged_node || con->p2->parent_node == state->last_dragged_node) {
-                array_remove_at(state->connections, i);
-                free(con);
-            }
-        }
-
-        for (int i = 0; i < state->nodes->size; i++) {
-            Node *node = array_get(state->nodes, i);
-            if (node == state->last_dragged_node) {
-                array_remove_at(state->nodes, i);
-                free(node);
-                state->last_dragged_node = NULL;
-                break;
-            }
-        }
+    for (int i = 0; i < state->nodes->size; i++) {
+        Node *node = array_get(state->nodes, i);
+        // print_node(node);
+        run_node(node);
     }
+
+    for (int i = 0; i < state->connections->size; i++) {
+        Connection *con = array_get(state->connections, i);
+        set_input_zero(con);
+    }
+
+    for (int i = 0; i < state->connections->size; i++) {
+        Connection *con = array_get(state->connections, i);
+        propagate_state(con);
+    }
+
+    printf("\n\n\n");
 }
 
-void check_motion_pos(SimulationState *state) {
+
+
+void process_mouse_motion(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
     assert(state->nodes != NULL && "Nodes array must be initialized");
     assert(state->buttons != NULL && "Buttons array must be initialized");
@@ -289,7 +237,7 @@ void check_motion_pos(SimulationState *state) {
     }
 }
 
-void check_left_click(SimulationState *state) {
+void process_left_click(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
     assert(state->nodes != NULL && "Nodes array must be initialized");
     assert(state->buttons != NULL && "Buttons array must be initialized");
@@ -310,7 +258,7 @@ void check_left_click(SimulationState *state) {
                 state->input.mouse_y >= node->rect.y && state->input.mouse_y <= node->rect.y + node->rect.h) {
                 state->input.drag_offset_x = state->input.mouse_x - node->rect.x;
                 state->input.drag_offset_y = state->input.mouse_y - node->rect.y;
-                state->input.is_dragging = 1;
+                state->input.is_node_dragging = 1;
                 state->dragged_node = node;
                 break;
             }
@@ -327,7 +275,7 @@ void check_left_click(SimulationState *state) {
     }
 }
 
-void check_right_click(SimulationState *state) {
+void process_right_click(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
     assert(state->nodes != NULL && "Nodes array must be initialized");
     
@@ -351,52 +299,37 @@ void check_right_click(SimulationState *state) {
     }
 }
 
-void one_step(SimulationState *state, void *function_data) {
-    assert(state != NULL);
-    (void)function_data;
-
-    for (int i = 0; i < state->nodes->size; i++) {
-        Node *node = array_get(state->nodes, i);
-        print_node(node);
-        run_node(node);
-    }
-
-    for (int i = 0; i < state->connections->size; i++) {
-        Connection *con = array_get(state->connections, i);
-        set_input_zero(con);
-    }
-
-    for (int i = 0; i < state->connections->size; i++) {
-        Connection *con = array_get(state->connections, i);
-        propagate_state(con);
-    }
-
-    printf("\n\n\n");
-}
-
-void toggle_play_pause(SimulationState *state, void *function_data) {
-    assert(state != NULL);
-    (void)function_data;
-
-    state->input.is_paused = !state->input.is_paused;
-    printf("state->input.is_paused: %d\n", state->input.is_paused);
-}
-
-void reset_sim(SimulationState *state, void *function_data)
-{
-    assert(state != NULL);
-    (void)function_data;
-    state->should_reset = 1;
-}
-
-
-void simulation_update(SimulationState *state) {
+void process_right_mouse_up(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
-    if (state->input.is_dragging && state->dragged_node != NULL) {
-        state->dragged_node->rect.x = state->input.mouse_x - state->input.drag_offset_x;
-        state->dragged_node->rect.y = state->input.mouse_y - state->input.drag_offset_y;
-    }
-    if (!state->input.is_paused) {
-        one_step(state, "");
+    connection_stroke_intersection(state);
+    array_free_with_elements(state->knife_stroke);
+    state->knife_stroke = array_create(16);
+}
+
+void process_left_mouse_up(SimulationState *state) {
+    assert(state != NULL && "Cannot update NULL state");
+    assert(state->buttons != NULL && "Buttons array must be initialized");
+
+    // trash button area
+    if (state->input.mouse_x >= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) && state->input.mouse_x <= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) + BUTTON_HEIGHT  &&
+        state->input.mouse_y >= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 && state->input.mouse_y <= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 + BUTTON_HEIGHT) {
+        
+        for (int i = state->connections->size - 1; i >= 0; i--) {
+            Connection *con = array_get(state->connections, i);
+            if (con->p1->parent_node == state->last_dragged_node || con->p2->parent_node == state->last_dragged_node) {
+                array_remove_at(state->connections, i);
+                free(con);
+            }
+        }
+
+        for (int i = 0; i < state->nodes->size; i++) {
+            Node *node = array_get(state->nodes, i);
+            if (node == state->last_dragged_node) {
+                array_remove_at(state->nodes, i);
+                free(node);
+                state->last_dragged_node = NULL;
+                break;
+            }
+        }
     }
 }

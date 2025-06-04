@@ -1,6 +1,8 @@
-#include "simulation.h"
-#include "renderer.h"
 #include "main.h"
+
+#include "simulation.h"
+#include "input_handler.h"
+#include "renderer.h"
 #include <stdio.h>
 
 int main() {
@@ -16,7 +18,7 @@ int main() {
     while (state->is_running) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            simulation_handle_input(state, &event);
+            handle_input(state, &event);
         }
         if (state->should_reset) {
             simulation_cleanup(state);

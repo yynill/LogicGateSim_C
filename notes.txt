@@ -1,20 +1,21 @@
 
 -----------Bugs-----------
-✅ when i connect 2 cables from different outputs to a inout, to a not gate for eaxmple, it only reacts to one of the both iputs. when it should react as if it was alittle or gate.
 
 
 -----------features-----------
-📋 add and implement buttons
-    📋 Back (cmd Z) is hard but i heared its like some tree generation - good practice.
-    📋 Speed Control (+ - button)
+📋 Back (cmd Z) is hard but i heared its like some tree generation - good practice.
+📋 Speed Control (+ - button)
 
-📋 aAdd a clock component
+📋 Add a clock component
 
+📋 camera  
+    📋 zoom  
+    📋 middle mouse scroll around  
+📋 infinite field
+📋 minimap
 📋 render cables nice with snapping and corners and such + dragging ? (cubic bezier curve)
 📋 select multiple 
 📋 copy paste multiple
-📋 zoom  
-📋 middle mouse scroll around  
 
 📋 make costum components, where i can double click like node group. costum names. and double click to get out. 
 📋 Build a library of components containing their own logic and having arbtrary number of sources and sinks
@@ -26,7 +27,6 @@
 
 -----------structural -----------
 📋 typedef enum { GATE_NULL ...}
-📋 split inout handeling from sim
 📋 change void functions to int to check if sucessful
 
 

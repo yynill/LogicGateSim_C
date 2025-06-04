@@ -19,6 +19,7 @@ LDFLAGS = -L/opt/homebrew/opt/sdl2/lib -L/opt/homebrew/opt/sdl2_ttf/lib -L/opt/h
 MAIN_SRC = src/main.c \
 		   src/DataStructures/DynamicArray.c \
            src/simulation.c \
+           src/input_handler.c \
            src/renderer.c \
 		   src/node.c \
 		   src/button.c \
