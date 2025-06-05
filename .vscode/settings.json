@@ -2,6 +2,7 @@
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "dynamicarray.h": "c",
-        "main.h": "c"
+        "main.h": "c",
+        "__node_handle": "c"
     }
 }

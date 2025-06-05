@@ -23,15 +23,20 @@ typedef struct SimulationState
         int left_mouse_down;
         int right_mouse_down;
         int middle_mouse_down;
+
         int mouse_x;
         int mouse_y;
-
-        int is_camera_dragging;
-
-        int is_node_dragging;
+        int mouse_wheel;
         int drag_offset_x;
         int drag_offset_y;
-        
+
+        int is_node_dragging;
+        int is_camera_dragging;
+
+        int camera_x;
+        int camera_y;
+        float camera_zoom;
+
         int is_paused;
     } input;
     Node *dragged_node;

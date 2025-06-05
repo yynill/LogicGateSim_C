@@ -118,10 +118,24 @@ void cleanup_renderer(RenderContext *context)
     SDL_Quit();
 }
 
-void render_text(RenderContext *context, const char *text, int x, int y, SDL_Color color) {
+void screen_to_world(SimulationState *state, int screen_x, int screen_y, float *world_x, float *world_y) {
+    *world_x = (screen_x / state->input.camera_zoom) + state->input.camera_x;
+    *world_y = (screen_y / state->input.camera_zoom) + state->input.camera_y;
+}
+
+void world_to_screen(SimulationState *state, float world_x, float world_y, int *screen_x, int *screen_y) {
+    *screen_x = (int)((world_x - state->input.camera_x) * state->input.camera_zoom);
+    *screen_y = (int)((world_y - state->input.camera_y) * state->input.camera_zoom);
+}
+
+
+void render_text(RenderContext *context, const char *text, int x, int y, SDL_Color color, float zoom) {
     assert(context != NULL);
     assert(text != NULL);
     assert(context->font != NULL && "Font must be loaded for text rendering");
+
+    if (zoom < 0.8) return;
+    
 
     SDL_Surface *surface = TTF_RenderText_Solid(context->font, text, color);
     if (!surface) {
@@ -136,7 +150,12 @@ void render_text(RenderContext *context, const char *text, int x, int y, SDL_Col
         return;
     }
 
-    SDL_Rect rect = {x, y, surface->w, surface->h};
+    SDL_Rect rect = {
+        x,
+        y,
+        (int)(surface->w * zoom),
+        (int)(surface->h * zoom)};
+
     SDL_RenderCopy(context->renderer, texture, NULL, &rect);
 
     SDL_DestroyTexture(texture);
@@ -187,26 +206,24 @@ void render_button(RenderContext *context, Button *button) {
     if (strncmp(button->name, "/", 1) == 0) {
         render_img(context, button->name, &button->rect);
     }
-    else{
+    else {
         SDL_SetRenderDrawColor(context->renderer, 20, 20, 20, 255);
         SDL_RenderFillRect(context->renderer, &button->rect);
 
         SDL_Color text_color = {255, 255, 255, 255};
-        if (TTF_SizeText(context->font, button->name, &text_width, &text_height) == 0)
-        {
+        if (TTF_SizeText(context->font, button->name, &text_width, &text_height) == 0) {
             int text_x = button->rect.x + (button->rect.w - text_width) / 2;
             int text_y = button->rect.y + (button->rect.h - text_height) / 2;
 
-            render_text(context, button->name, text_x, text_y, text_color);
+            render_text(context, button->name, text_x, text_y, text_color, 1);
         }
-        else
-        {
-            render_text(context, button->name, button->rect.x, button->rect.y, text_color);
+        else {
+            render_text(context, button->name, button->rect.x, button->rect.y, text_color, 1);
         }
     }
 }
 
-void render_knife_stroke(RenderContext *context, SimulationState *sim_state){
+void render_knife_stroke(RenderContext *context, SimulationState *sim_state) {
     assert(context != NULL);
     assert(sim_state != NULL);
     SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255);
@@ -215,7 +232,11 @@ void render_knife_stroke(RenderContext *context, SimulationState *sim_state){
         SDL_Point *p1 = array_get(sim_state->knife_stroke, i);
         SDL_Point *p2 = array_get(sim_state->knife_stroke, i + 1);
 
-        SDL_RenderDrawLine(context->renderer, p1->x, p1->y, p2->x, p2->y);
+        int x1, y1, x2, y2;
+        world_to_screen(sim_state, (float)p1->x, (float)p1->y, &x1, &y1);
+        world_to_screen(sim_state, (float)p2->x, (float)p2->y, &x2, &y2);
+
+        SDL_RenderDrawLine(context->renderer, x1, y1, x2, y2);
     }
 }
 
@@ -230,17 +251,28 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         node_rect.y -= 2;
         node_rect.w += 4;
         node_rect.h += 4;
-        // todo: move each pin for zooom 
+        // todo: move each pin for drag zooom 
     }
+
+    printf("screen: %d, %d, %d, %d\n", node_rect.x, node_rect.y, node_rect.w, node_rect.h);
+    
+    int new_x, new_y;
+    world_to_screen(sim_state, node_rect.x, node_rect.y, &new_x, &new_y);
+    int new_w = (int)(node_rect.w * sim_state->input.camera_zoom);
+    int new_h = (int)(node_rect.h * sim_state->input.camera_zoom);
+    SDL_Rect dest = {new_x, new_y, new_w, new_h};
+    
+    
+    printf("world:  %d, %d, %d, %d\n", new_x, new_y, new_w, new_h);
 
     if (strcmp(node->name, "SWITCH") == 0) {
         Pin *p = array_get(node->outputs, 0);
-        if (p->state) render_img(context, "/assets/images/switch_on.png", &node_rect);
-        else render_img(context, "/assets/images/switch_off.png", &node_rect);
+        if (p->state) render_img(context, "/assets/images/switch_on.png", &dest);
+        else render_img(context, "/assets/images/switch_off.png", &dest);
     } else if (strcmp(node->name, "LIGHT") == 0) {
         Pin *p = array_get(node->inputs, 0);
-        if (p->state) render_img(context, "/assets/images/light_on.png", &node_rect);
-        else render_img(context, "/assets/images/light_off.png", &node_rect);
+        if (p->state) render_img(context, "/assets/images/light_on.png", &dest);
+        else render_img(context, "/assets/images/light_off.png", &dest);
     } else {
         if (strcmp(node->name, "AND") == 0) SDL_SetRenderDrawColor(context->renderer, 0, 128, 0, 255);
         else if (strcmp(node->name, "OR") == 0) SDL_SetRenderDrawColor(context->renderer, 255, 165, 0, 255);
@@ -251,7 +283,7 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         else if (strcmp(node->name, "XNOR") == 0) SDL_SetRenderDrawColor(context->renderer, 0, 139, 139, 255);
         else  SDL_SetRenderDrawColor(context->renderer, 0, 0, 255, 255);
         
-        SDL_RenderFillRect(context->renderer, &node_rect);
+        SDL_RenderFillRect(context->renderer, &dest);
     }
 
     SDL_SetTextureAlphaMod(context->circle_texture, 255);
@@ -260,12 +292,10 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
     for (int i = 0; i < num_inputs; i++) {
         Pin *pin = array_get(node->inputs, i);
 
-        SDL_Rect pin_rect = {
-            .x = node_rect.x + pin->x,
-            .y = node_rect.y + pin->y,
-            .w = PIN_SIZE,
-            .h = PIN_SIZE
-        };
+        SDL_Rect pin_rect;
+        world_to_screen(sim_state, node_rect.x + pin->x, node_rect.y + pin->y, &pin_rect.x, &pin_rect.y);
+        pin_rect.w = (int)(PIN_SIZE * sim_state->input.camera_zoom);
+        pin_rect.h = (int)(PIN_SIZE * sim_state->input.camera_zoom);
 
         if (sim_state->hovered_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 255, 60, 60);
         else if (sim_state->first_selected_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 0, 128, 255);
@@ -278,12 +308,10 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
     for (int i = 0; i < num_outputs; i++) {
         Pin *pin = array_get(node->outputs, i);
 
-        SDL_Rect pin_rect = {
-            .x = node_rect.x + pin->x,
-            .y = node_rect.y + pin->y,
-            .w = PIN_SIZE ,
-            .h = PIN_SIZE
-        };
+        SDL_Rect pin_rect;
+        world_to_screen(sim_state, node_rect.x + pin->x, node_rect.y + pin->y, &pin_rect.x, &pin_rect.y);
+        pin_rect.w = (int)(PIN_SIZE * sim_state->input.camera_zoom);
+        pin_rect.h = (int)(PIN_SIZE * sim_state->input.camera_zoom);
 
         if (sim_state->hovered_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 255, 60, 60);
         else if (sim_state->first_selected_pin == pin) SDL_SetTextureColorMod(context->circle_texture, 0, 128, 255);
@@ -296,31 +324,33 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         SDL_Color text_color = {255, 255, 255, 255};
         int text_width, text_height;
         if (TTF_SizeText(context->font, node->name, &text_width, &text_height) == 0) {
-            int text_x = node->rect.x + (node->rect.w - text_width) / 2;
-            int text_y = node->rect.y + (node->rect.h - text_height) / 2;
-            render_text(context, node->name, text_x, text_y, text_color);
+            int text_x, text_y;
+            world_to_screen(sim_state, node->rect.x, node->rect.y, &text_x, &text_y);
+            text_x += (int)(((node->rect.w - text_width) * sim_state->input.camera_zoom) / 2);
+            text_y += (int)(((node->rect.h - text_height) * sim_state->input.camera_zoom) / 2);
+            render_text(context, node->name, text_x, text_y, text_color, sim_state->input.camera_zoom);
         } else {
-            render_text(context, node->name, node->rect.x, node->rect.y, text_color);
+            render_text(context, node->name, node->rect.x, node->rect.y, text_color, sim_state->input.camera_zoom);
         }
     }
 }
 
-void render_connection(RenderContext *context, Connection *con) {
+void render_connection(RenderContext *context, Connection *con, SimulationState *sim_state) {
     assert(context != NULL);
     assert(con != NULL);
 
     Node *parent1 = con->p1->parent_node;
     Node *parent2 = con->p2->parent_node;
 
-    int x1 = parent1->rect.x + con->p1->x + PIN_SIZE / 2;
-    int y1 = parent1->rect.y + con->p1->y + PIN_SIZE / 2;
-    int x2 = parent2->rect.x + con->p2->x + PIN_SIZE / 2;
-    int y2 = parent2->rect.y + con->p2->y + PIN_SIZE / 2;
+    int x1 = (int)((parent1->rect.x + con->p1->x) - sim_state->input.camera_x) * sim_state->input.camera_zoom + (PIN_SIZE * sim_state->input.camera_zoom / 2);
+    int y1 = (int)((parent1->rect.y + con->p1->y) - sim_state->input.camera_y) * sim_state->input.camera_zoom + (PIN_SIZE * sim_state->input.camera_zoom / 2);
+    int x2 = (int)((parent2->rect.x + con->p2->x) - sim_state->input.camera_x) * sim_state->input.camera_zoom + (PIN_SIZE * sim_state->input.camera_zoom / 2);
+    int y2 = (int)((parent2->rect.y + con->p2->y) - sim_state->input.camera_y) * sim_state->input.camera_zoom + (PIN_SIZE * sim_state->input.camera_zoom / 2);
 
     if (con->state) {SDL_SetRenderDrawColor(context->renderer, 0, 200, 103, 255);}
     else {SDL_SetRenderDrawColor(context->renderer, 0, 0, 30, 255);}
 
-    int thickness = 4;
+    int thickness = (int)4 * sim_state->input.camera_zoom;
     for (int i = -thickness/2; i <= thickness/2; i++) {
         SDL_RenderDrawLine(context->renderer, x1, y1 + i, x2, y2 + i);
         SDL_RenderDrawLine(context->renderer, x1 + i, y1, x2 + i, y2);
@@ -336,18 +366,6 @@ void render(RenderContext *context, SimulationState *sim_state)
     assert(sim_state->nodes != NULL && "Nodes array must be initialized");
 
     clear_screen(context);
-    render_top_bar(context);
-
-    for (int i = 0; i < sim_state->buttons->size; i++) {
-        Button *button = array_get(sim_state->buttons, i);
-
-        if (strncmp(button->name, "/assets/images/play.png", 23) == 0 && !sim_state->input.is_paused) { button->name = "/assets/images/pause.png"; }
-        if (strncmp(button->name, "/assets/images/pause.png", 24) == 0 && sim_state->input.is_paused) { button->name = "/assets/images/play.png"; }
-        if (strncmp(button->name, "/assets/images/trash.png", 24) == 0 && !sim_state->dragged_node) { continue; }
-
-        assert(button != NULL && "Button must not be NULL");
-        render_button(context, button);
-    }
 
     render_knife_stroke(context, sim_state);
 
@@ -355,7 +373,7 @@ void render(RenderContext *context, SimulationState *sim_state)
         Connection *connection = array_get(sim_state->connections, i);
         assert(connection != NULL && "Connection must not be NULL");
 
-        render_connection(context, connection);
+        render_connection(context, connection, sim_state);
     }
 
     Node *last_node = NULL;
@@ -371,6 +389,18 @@ void render(RenderContext *context, SimulationState *sim_state)
         render_node(context, node, sim_state);
     }
     if (last_node != NULL) render_node(context, last_node, sim_state);
+
+    render_top_bar(context);
+    for (int i = 0; i < sim_state->buttons->size; i++) {
+        Button *button = array_get(sim_state->buttons, i);
+
+        if (strncmp(button->name, "/assets/images/play.png", 23) == 0 && !sim_state->input.is_paused) { button->name = "/assets/images/pause.png"; }
+        if (strncmp(button->name, "/assets/images/pause.png", 24) == 0 && sim_state->input.is_paused) { button->name = "/assets/images/play.png"; }
+        if (strncmp(button->name, "/assets/images/trash.png", 24) == 0 && !sim_state->dragged_node) { continue; }
+
+        assert(button != NULL && "Button must not be NULL");
+        render_button(context, button);
+    }
     
     present_screen(context);
 }

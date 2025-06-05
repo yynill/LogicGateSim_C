@@ -1,5 +1,6 @@
 
 -----------Bugs-----------
+dont render stuff that is off screen
 
 
 -----------features-----------
@@ -8,11 +9,12 @@
 
 📋 Add a clock component
 
-📋 camera  
-    📋 zoom  
-    📋 middle mouse scroll around  
-📋 infinite field
+✅ camera  
+    ✅ zoom  
+    ✅ middle mouse scroll around
 📋 minimap
+
+
 📋 render cables nice with snapping and corners and such + dragging ? (cubic bezier curve)
 📋 select multiple 
 📋 copy paste multiple
