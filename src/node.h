@@ -1,7 +1,9 @@
 #ifndef NODE_H
 #define NODE_H
+#pragma once
 
 #include <SDL2/SDL.h>
+#include <assert.h>
 #include "DataStructures/DynamicArray.h"
 
 typedef int (Operation)(int, int);
@@ -22,13 +24,6 @@ typedef struct Pin {
     Node *parent_node; 
     int state;
 } Pin;
-
-typedef struct Connection
-{
-    Pin *p1;
-    Pin *p2;
-    int state;
-} Connection;
 
 /* basic node operations */
 
@@ -64,12 +59,8 @@ static inline int notSecondGate(int a, int b) { (void)a; return !b; }
 
 // functions
 void print_node(Node *node);
-void print_connection(Connection *con);
 void run_node(Node *node);
-void propagate_state(Connection *con);
-void set_input_zero(Connection *con);
 
-Connection *create_connection(Pin *pin1, Pin *pin2);
 Pin *create_pin(int x, int y, int ii, Node *parent_node);
 Node *create_node(int num_inputs, int num_outputs, Operation op, SDL_Rect rect, const char *name);
 

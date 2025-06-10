@@ -1,30 +1,49 @@
 
------------Bugs-----------
-dont render stuff that is off screen
 
+
+
+-----------End Goal-----------
+
+Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc build out of logic gates) capable of executing instruction sets and rendering *Bad Apple* on a simulated screen.
+
+
+ _____       _    _____         _       
+| __  |___ _| |  |  _  |___ ___| |___   
+| __ -| .'| . |  |     | . | . | | -_|  
+|_____|__,|___|  |__|__|  _|  _|_|___|  
+                       |_| |_|          
+
+
+-----------Bugs-----------
+🐞  main(18878,0x20a2f8c40)  malloc: Double free of object 0x137113fe0 (this is a connection)
+🐞  cut cables               zsh: segmentation fault  ./main
+🐞  if nodes on same height, cable connects wierdly. snaps 
 
 -----------features-----------
 📋 Back (cmd Z) is hard but i heared its like some tree generation - good practice.
 📋 Speed Control (+ - button)
 
-📋 Add a clock component
-
-✅ camera  
-    ✅ zoom  
-    ✅ middle mouse scroll around
-📋 minimap
-
+✅ camera pan and zoom
 
 📋 render cables nice with snapping and corners and such + dragging ? (cubic bezier curve)
+    when hovered pin for drag dont detect node. 
+
 📋 select multiple 
 📋 copy paste multiple
 
 📋 make costum components, where i can double click like node group. costum names. and double click to get out. 
+    swiches / lights inside a component shoudl dictade the number of input / output pins of that component and actually represent them - or build costum sschnittstelen
+    make component size costum to num input outputs
+    add dynamic names to it 
+    save and load with one click
 📋 Build a library of components containing their own logic and having arbtrary number of sources and sinks
+    📋 Add a clock component
+    📋 Add a multi pixel / screen component
+    📋 Add a instruction set input component (vertical bar only with outputs)
 📋 download graph into a file and load later (really cool stuff) (.blif file parsing)
 📋 Boolean algebra simplifier which reduces logic to fewest gates
 📋 Mini computer. with instruction set. that can be run. Instruction inpit element 
-📋 maybe even basic compiler??? dream big huh
+📋 maybe even basic compiler??? dream big huh - istruction set
 
 
 -----------structural -----------
@@ -33,7 +52,9 @@ dont render stuff that is off screen
 
 
 -----------optimizations-----------
+‼️‼️‼️‼️‼️ refactor code
 📋 is there a way to do this without looping over every pin - yes chunkng for mouse cursor. check and loop only the ones in neighbouring chunks
+📋 don't render stuff that is off screen
 
 
 ####################################

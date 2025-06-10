@@ -1,5 +1,6 @@
 #ifndef INPUT_HANDLER_H
 #define INPUT_HANDLER_H
+#pragma once
 
 #include <SDL2/SDL.h>
 

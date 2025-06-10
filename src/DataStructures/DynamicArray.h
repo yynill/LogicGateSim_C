@@ -1,5 +1,6 @@
 #ifndef DynamicArray_H
 #define DynamicArray_H
+#pragma once
 
 #include <stdlib.h>
 

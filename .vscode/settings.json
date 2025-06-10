@@ -3,6 +3,8 @@
     "files.associations": {
         "dynamicarray.h": "c",
         "main.h": "c",
-        "__node_handle": "c"
+        "__node_handle": "c",
+        "sdl.h": "c",
+        "renderer.h": "c"
     }
 }

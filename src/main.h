@@ -1,5 +1,6 @@
 #ifndef MAIN_H
 #define MAIN_H
+#pragma once
 
 #define WINDOW_TITLE "Logic Gate Sim"
 

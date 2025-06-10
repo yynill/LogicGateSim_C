@@ -1,14 +1,5 @@
 #include "simulation.h"
 
-#include "DataStructures/DynamicArray.h"
-#include "main.h"
-#include "renderer.h"
-#include "point.h"
-
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-
 SimulationState *simulation_init(void) {
     SimulationState *state = malloc(sizeof(SimulationState));
     if (!state)
@@ -45,24 +36,30 @@ SimulationState *simulation_init(void) {
     
     array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), WINDOW_HEIGHT - BUTTON_HEIGHT - 10, BUTTON_HEIGHT, BUTTON_HEIGHT}, "/assets/images/trash.png", nullGate, null_function));
 
-    state->input.left_mouse_down = 0;
-    state->input.right_mouse_down = 0;
-    state->input.middle_mouse_down = 0;
+    state->left_mouse_down = 0;
+    state->right_mouse_down = 0;
+    state->middle_mouse_down = 0;
 
-    state->input.mouse_x = 0;
-    state->input.mouse_y = 0;
-    state->input.mouse_wheel = 0;
-    state->input.drag_offset_x = 0;
-    state->input.drag_offset_y = 0;
+    state->mouse_x = 0;
+    state->mouse_y = 0;
+    state->mouse_wheel = 0;
+    state->drag_offset_x = 0;
+    state->drag_offset_y = 0;
 
-    state->input.is_node_dragging = 0;
-    state->input.is_camera_dragging = 0;
+    state->is_node_dragging = 0;
+    state->is_camera_dragging = 0;
+    state->is_cable_dragging = 0;
+    state->is_connection_point_dragging = 0;
 
-    state->input.camera_x = 0;
-    state->input.camera_y = 0;
-    state->input.camera_zoom = 1;
+    state->camera_x = 0;
+    state->camera_y = 0;
+    state->camera_zoom = 1;
 
-    state->input.is_paused = 1;
+    state->is_paused = 1;
+
+    state->hovered_connection_point = NULL;
+    state->dragging_connection_point = NULL;
+    state->new_connection = NULL;
 
     state->dragged_node = NULL;
     state->hovered_pin = NULL;
@@ -83,6 +80,11 @@ void simulation_cleanup(SimulationState *state) {
     if (state)
     {
         array_free_with_elements(state->nodes);
+        // for (int i = 0; i < state->connections->size; i++)
+        // {
+        //     Connection *con = (Connection*)array_get(state->connections, i);
+        //     connection_free(con);
+        // }
         array_free_with_elements(state->connections);
         array_free_with_elements(state->buttons);
         array_free_with_elements(state->knife_stroke);
@@ -100,7 +102,7 @@ void reset_sim(SimulationState *state, void *function_data)
 void simulation_update(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
 
-    if (!state->input.is_paused) {
+    if (!state->is_paused) {
         one_step(state, "");
     }
 }
@@ -108,7 +110,7 @@ void simulation_update(SimulationState *state) {
 void null_function(SimulationState *state, void *function_data) {
     (void)state;
     (void)function_data;
-    printf("todo\n"); // todo: delete when others implememtned - just palce holder for now.
+    printf("// todo\n");
     return;
 }
 
@@ -169,8 +171,7 @@ void toggle_play_pause(SimulationState *state, void *function_data) {
     assert(state != NULL);
     (void)function_data;
 
-    state->input.is_paused = !state->input.is_paused;
-    printf("state->input.is_paused: %d\n", state->input.is_paused);
+    state->is_paused = !state->is_paused;
 }
 
 void one_step(SimulationState *state, void *function_data) {
@@ -192,11 +193,7 @@ void one_step(SimulationState *state, void *function_data) {
         Connection *con = array_get(state->connections, i);
         propagate_state(con);
     }
-
-    printf("\n\n\n");
 }
-
-
 
 void process_mouse_motion(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
@@ -204,10 +201,10 @@ void process_mouse_motion(SimulationState *state) {
     assert(state->buttons != NULL && "Buttons array must be initialized");
 
     float world_x, world_y;
-    screen_to_world(state, state->input.mouse_x, state->input.mouse_y, &world_x, &world_y);
+    screen_to_world(state, state->mouse_x, state->mouse_y, &world_x, &world_y);
 
     // Knife-Stroke
-    if (state->input.right_mouse_down) {
+    if (state->right_mouse_down) {
         Uint32 now = SDL_GetTicks();
         if (now - state->last_knife_record_time > 20) {
             SDL_Point *point = malloc(sizeof(SDL_Point));
@@ -223,7 +220,6 @@ void process_mouse_motion(SimulationState *state) {
     }
 
     // pin hover
-    // todo: chunk based checks to not for loop over all items for mouse.
     state->hovered_pin = NULL;
     for (int i = 0; i < state->nodes->size; i++) {
         Node *node = array_get(state->nodes, i);
@@ -248,11 +244,59 @@ void process_mouse_motion(SimulationState *state) {
         }
     }
 
-    // move nodes
-    if (state->input.is_node_dragging && state->dragged_node != NULL) {
-        state->dragged_node->rect.x = world_x - state->input.drag_offset_x;
-        state->dragged_node->rect.y = world_y - state->input.drag_offset_y;
+    // connection point hover and drag
+    state->hovered_connection_point = NULL;
+    for (int i = 0; i < state->connections->size; i++) {
+        Connection *con = array_get(state->connections, i);
+        for (int n = 0; n < con->points->size; n++) {
+            SDL_Point *point = array_get(con->points, n);
+
+            
+            int dx = world_x - point->x;
+            int dy = world_y - point->y;
+            float distance_squared = (dx * dx) + (dy * dy);
+            float hover_radius_squared = 25.0f;
+            
+            if (distance_squared <= hover_radius_squared) {
+                state->hovered_connection_point = point;
+            }
+
+            if (state->is_connection_point_dragging && state->dragging_connection_point == point) {
+                state->dragging_connection_point->x = world_x - state->drag_offset_x;
+                state->dragging_connection_point->y = world_y - state->drag_offset_y;
+            }
+        }
     }
+
+    // move nodes
+    if (state->is_node_dragging && state->dragged_node != NULL) {
+        state->dragged_node->rect.x = world_x - state->drag_offset_x;
+        state->dragged_node->rect.y = world_y - state->drag_offset_y;
+    }
+
+    // cable drag
+    if (state->is_cable_dragging) {
+        SDL_Point *last = (SDL_Point *)array_get(state->new_connection->points, state->new_connection->points->size - 1);
+
+        if ((state->new_connection->points->size % 2) == 0) {
+            if (state->mouse_x > last->x + NODE_HEIGHT ||
+                state->mouse_x < last->x - NODE_HEIGHT) {
+                    add_connection_point(state->new_connection, last->x, state->mouse_y);
+                }
+            }
+        else {
+            if (state->mouse_y > last->y + NODE_HEIGHT ||
+                state->mouse_y < last->y - NODE_HEIGHT) {
+                add_connection_point(state->new_connection, state->mouse_x, last->y);
+            }
+        }
+    }
+
+    for (int i = 0; i < state->connections->size; i++) { 
+        Connection *con = array_get(state->connections, i);
+        update_connection_points(state, con);
+        print_connection(con);
+    } 
 }
 
 void process_left_click(SimulationState *state) {
@@ -260,13 +304,13 @@ void process_left_click(SimulationState *state) {
     assert(state->nodes != NULL && "Nodes array must be initialized");
     assert(state->buttons != NULL && "Buttons array must be initialized");
 
-    if (state->input.left_mouse_down) {
+    if (state->left_mouse_down) {
         // in screen space
         for (int i = 0; i < state->buttons->size; i++) {
             Button *button = array_get(state->buttons, i);
             assert(button != NULL && "Button should not be NULL");
-            if (state->input.mouse_x >= button->rect.x && state->input.mouse_x <= button->rect.x + button->rect.w &&
-                state->input.mouse_y >= button->rect.y && state->input.mouse_y <= button->rect.y + button->rect.h) {
+            if (state->mouse_x >= button->rect.x && state->mouse_x <= button->rect.x + button->rect.w &&
+                state->mouse_y >= button->rect.y && state->mouse_y <= button->rect.y + button->rect.h) {
                 button->on_press(state, button);
                 return;
             }
@@ -274,31 +318,32 @@ void process_left_click(SimulationState *state) {
 
         // in World space
         float world_x, world_y;
-        screen_to_world(state, state->input.mouse_x, state->input.mouse_y, &world_x, &world_y);
+        screen_to_world(state, state->mouse_x, state->mouse_y, &world_x, &world_y);
 
-        for (int i = state->nodes->size - 1; i >= 0; i--) {
-            Node *node = array_get(state->nodes, i);
-            if (world_x >= node->rect.x && world_x <= node->rect.x + node->rect.w &&
-                world_y >= node->rect.y && world_y <= node->rect.y + node->rect.h) {
-                state->input.drag_offset_x = world_x - node->rect.x;
-                state->input.drag_offset_y = world_y - node->rect.y;
-                state->input.is_node_dragging = 1;
-                state->dragged_node = node;
-                break;
+        if (state->hovered_pin != NULL) {
+            state->first_selected_pin = state->hovered_pin;
+            state->new_connection = start_connection(state->hovered_pin);
+            add_connection_point(state->new_connection, state->hovered_pin->parent_node->rect.x + state->hovered_pin->x, state->hovered_pin->parent_node->rect.y + state->hovered_pin->y);
+            state->is_cable_dragging = 1;
+        }
+
+        if(!state->is_cable_dragging) {
+            for (int i = state->nodes->size - 1; i >= 0; i--) {
+                Node *node = array_get(state->nodes, i);
+                if (world_x >= node->rect.x && world_x <= node->rect.x + node->rect.w &&
+                    world_y >= node->rect.y && world_y <= node->rect.y + node->rect.h) {
+                    state->drag_offset_x = world_x - node->rect.x;
+                    state->drag_offset_y = world_y - node->rect.y;
+                    state->is_node_dragging = 1;
+                    state->dragged_node = node;
+                    break;
+                }
             }
         }
 
-        if (state->hovered_pin != NULL) {
-            if (state->first_selected_pin == NULL) {
-                state->first_selected_pin = state->hovered_pin;
-            }
-            else if (state->first_selected_pin->is_input == state->hovered_pin->is_input) {
-                state->first_selected_pin = NULL;
-            }
-            else {
-                array_add(state->connections, create_connection(state->first_selected_pin, state->hovered_pin));
-                state->first_selected_pin = NULL;
-            }
+        if (state->hovered_connection_point != NULL) {
+            state->is_connection_point_dragging = 1;
+            state->dragging_connection_point = state->hovered_connection_point;
         }
     }
 }
@@ -307,9 +352,9 @@ void process_right_click(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
     assert(state->nodes != NULL && "Nodes array must be initialized");
     
-    if (state->input.right_mouse_down) {
+    if (state->right_mouse_down) {
         float world_x, world_y;
-        screen_to_world(state, state->input.mouse_x, state->input.mouse_y, &world_x, &world_y);
+        screen_to_world(state, state->mouse_x, state->mouse_y, &world_x, &world_y);
 
         for (int i = 0; i < state->nodes->size; i++) {
             Node *node = array_get(state->nodes, i);
@@ -334,7 +379,7 @@ void process_right_mouse_up(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
     connection_stroke_intersection(state);
     array_free_with_elements(state->knife_stroke);
-    state->knife_stroke = array_create(16);
+    state->knife_stroke = array_create(16);    
 }
 
 void process_left_mouse_up(SimulationState *state) {
@@ -342,8 +387,8 @@ void process_left_mouse_up(SimulationState *state) {
     assert(state->buttons != NULL && "Buttons array must be initialized");
 
     // trash button area
-    if (state->input.mouse_x >= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) && state->input.mouse_x <= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) + BUTTON_HEIGHT  &&
-        state->input.mouse_y >= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 && state->input.mouse_y <= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 + BUTTON_HEIGHT) {
+    if (state->mouse_x >= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) && state->mouse_x <= WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10) + BUTTON_HEIGHT  &&
+        state->mouse_y >= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 && state->mouse_y <= WINDOW_HEIGHT - BUTTON_HEIGHT - 10 + BUTTON_HEIGHT) {
         
         for (int i = state->connections->size - 1; i >= 0; i--) {
             Connection *con = array_get(state->connections, i);
@@ -363,4 +408,21 @@ void process_left_mouse_up(SimulationState *state) {
             }
         }
     }
+
+    // pin drag drop
+    if (state->hovered_pin != NULL && state->first_selected_pin != NULL && state->first_selected_pin != state->hovered_pin && (state->first_selected_pin->is_input != state->hovered_pin->is_input)) {
+        add_connection_point(state->new_connection, state->hovered_pin->parent_node->rect.x + state->hovered_pin->x, state->hovered_pin->parent_node->rect.y + state->hovered_pin->y);
+        finish_conection(state->new_connection, state->hovered_pin);
+        array_add(state->connections, state->new_connection);
+        state->first_selected_pin = NULL;
+        state->is_cable_dragging = 0;
+
+        array_add(state->connections, state->new_connection);
+    }
+    else {
+        state->first_selected_pin = NULL;
+        state->is_cable_dragging = 0;
+    }
+
+    state->is_connection_point_dragging = 0;
 }

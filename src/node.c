@@ -1,16 +1,6 @@
 #include "node.h"
 #include "renderer.h"
-#include <assert.h>
 
-Connection *create_connection(Pin *pin1, Pin *pin2) {
-    Connection *con = malloc(sizeof(Connection));
-    con->p1 = pin1;
-    con->p2 = pin2;
-    con->state = 0;
-    propagate_state(con);
-
-    return con;
-}
 
 
 Pin *create_pin(int x, int y, int ii, Node *parent_node) {
@@ -106,28 +96,6 @@ void run_node(Node *node)
     }
 }
 
-void set_input_zero(Connection *con) {
-    assert(con != NULL);
-    assert(con->p1 != NULL && con->p2 != NULL);
-    assert(con->p1->is_input != con->p2->is_input);
-
-    Pin *in_pin = con->p1->is_input ? con->p1 : con->p2;
-
-    in_pin->state = 0;
-}
-
-void propagate_state(Connection *con) {
-    assert(con != NULL);
-    assert(con->p1 != NULL && con->p2 != NULL);
-    assert(con->p1->is_input != con->p2->is_input);
-
-    Pin *out_pin = con->p1->is_input ? con->p2 : con->p1;
-    Pin *in_pin  = con->p1->is_input ? con->p1 : con->p2;
-
-    in_pin->state |= out_pin->state;
-    con->state = out_pin->state;
-}
-
 void print_node(Node *node) {
     if (!node) {
         printf("Invalid Node (NULL pointer)\n");
@@ -155,32 +123,4 @@ void print_node(Node *node) {
     }
 
     printf("--------------------------------\n");
-}
-
-void print_connection(Connection *con) {
-    if (!con || !con->p1 || !con->p2) {
-        printf("Invalid connection (NULL pointer)\n");
-        return;
-    }
-
-    Node *from_node = con->p1->parent_node;
-    Node *to_node   = con->p2->parent_node;
-
-    printf("Connection (%p):\n", (void *)con);
-    printf("  Node: %s (%p) | Pin (%p) State: %d | Pin Type: %s\n",
-           from_node ? from_node->name : "NULL",
-           (void *)from_node,
-           (void *)con->p1,
-           con->p1->state,
-           con->p1->is_input ? "INPUT" : "OUTPUT");
-
-    printf("  Node:   %s (%p) | Pin (%p) State: %d | Pin Type: %s\n",
-           to_node ? to_node->name : "NULL",
-           (void *)to_node,
-           (void *)con->p2,
-           con->p2->state,
-           con->p2->is_input ? "INPUT" : "OUTPUT");
-
-    printf("  Cable State: %d\n", con->state);
-    printf("--------------------------\n");
 }

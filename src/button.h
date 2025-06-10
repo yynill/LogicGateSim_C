@@ -1,5 +1,6 @@
 #ifndef Button_H
 #define Button_H
+#pragma once
 
 #include <SDL2/SDL.h>
 #include "simulation.h"
