@@ -15,9 +15,11 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 
 
 -----------Bugs-----------
-🐞  main(18878,0x20a2f8c40)  malloc: Double free of object 0x137113fe0 (this is a connection)
-🐞  cut cables               zsh: segmentation fault  ./main
-🐞  if nodes on same height, cable connects wierdly. snaps 
+✅  main(18878,0x20a2f8c40)  malloc: Double free of object 0x137113fe0 (this is a connection)
+✅  cut cables               zsh: segmentation fault  ./main
+✅  if nodes on same height, cable connects wierdly. snaps 
+
+
 
 -----------features-----------
 📋 Back (cmd Z) is hard but i heared its like some tree generation - good practice.

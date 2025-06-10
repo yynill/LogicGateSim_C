@@ -76,18 +76,21 @@ SimulationState *simulation_init(void) {
 
 void simulation_cleanup(SimulationState *state) {
     assert(state != NULL && "Cannot cleanup NULL state");
+    
+    if (state) {
+        for (int i = 0; i < state->nodes->size; i++) {
+            free_node((Node*)array_get(state->nodes, i));
+        }
+        free(state->nodes); 
 
-    if (state)
-    {
-        array_free_with_elements(state->nodes);
-        // for (int i = 0; i < state->connections->size; i++)
-        // {
-        //     Connection *con = (Connection*)array_get(state->connections, i);
-        //     connection_free(con);
-        // }
-        array_free_with_elements(state->connections);
-        array_free_with_elements(state->buttons);
-        array_free_with_elements(state->knife_stroke);
+
+        for (int i = 0; i < state->connections->size; i++) {
+            free_connection((Connection*)array_get(state->connections, i));
+        }
+        free(state->connections);
+
+        array_free(state->buttons);
+        array_free(state->knife_stroke);
         free(state);
     }
 }
@@ -140,28 +143,29 @@ void add_node(SimulationState *state, void *function_data) {
 
     array_add(state->nodes, create_node(num_inputs, num_outputs, op, node_rect, button->name));
 }
-
 void connection_stroke_intersection(SimulationState *state) {
     assert(state != NULL);
     assert(state->connections != NULL);
     assert(state->knife_stroke != NULL);
 
     for (int i = 0; i < state->knife_stroke->size - 1; i++) {
-        SDL_Point *p1 = array_get(state->knife_stroke, i);
-        SDL_Point *p2 = array_get(state->knife_stroke, i + 1);
-
+        SDL_Point *knive_p1 = array_get(state->knife_stroke, i);
+        SDL_Point *knive_p2 = array_get(state->knife_stroke, i + 1);
         for (int j = state->connections->size - 1; j >= 0; j--) {
             Connection *con = array_get(state->connections, j);
+            if (con != NULL && con->points != NULL && con->points->size >= 2) {
+                for (int k = 0; k < con->points->size - 1; k++) {
+                    SDL_Point *con_p1 = array_get(con->points, k); 
+                    SDL_Point *con_p2 = array_get(con->points, k + 1); 
 
-            Point a = {p1->x, p1->y};
-            Point b = {p2->x, p2->y};
-            Point c = {con->p1->parent_node->rect.x + con->p1->x, con->p1->parent_node->rect.y + con->p1->y};
-            Point d = {con->p2->parent_node->rect.x + con->p2->x, con->p2->parent_node->rect.y + con->p2->y};
-            Point out;
-
-            if (segment_intersection(a, b, c, d, &out)) {
-                array_remove_at(state->connections, j);
-                free(con);
+                    SDL_Point out;
+                    
+                    if (segment_intersection(knive_p1, knive_p2, con_p1, con_p2, &out)) {
+                        array_remove_at(state->connections, j);
+                        free_connection(con);
+                        break; 
+                    }
+                }
             }
         }
     }
@@ -295,7 +299,6 @@ void process_mouse_motion(SimulationState *state) {
     for (int i = 0; i < state->connections->size; i++) { 
         Connection *con = array_get(state->connections, i);
         update_connection_points(state, con);
-        print_connection(con);
     } 
 }
 
@@ -378,8 +381,8 @@ void process_right_click(SimulationState *state) {
 void process_right_mouse_up(SimulationState *state) {
     assert(state != NULL && "Cannot update NULL state");
     connection_stroke_intersection(state);
-    array_free_with_elements(state->knife_stroke);
-    state->knife_stroke = array_create(16);    
+    array_free(state->knife_stroke);
+    state->knife_stroke = array_create(16);
 }
 
 void process_left_mouse_up(SimulationState *state) {
@@ -394,7 +397,7 @@ void process_left_mouse_up(SimulationState *state) {
             Connection *con = array_get(state->connections, i);
             if (con->p1->parent_node == state->last_dragged_node || con->p2->parent_node == state->last_dragged_node) {
                 array_remove_at(state->connections, i);
-                free(con);
+                free_connection(con);
             }
         }
 
@@ -413,7 +416,6 @@ void process_left_mouse_up(SimulationState *state) {
     if (state->hovered_pin != NULL && state->first_selected_pin != NULL && state->first_selected_pin != state->hovered_pin && (state->first_selected_pin->is_input != state->hovered_pin->is_input)) {
         add_connection_point(state->new_connection, state->hovered_pin->parent_node->rect.x + state->hovered_pin->x, state->hovered_pin->parent_node->rect.y + state->hovered_pin->y);
         finish_conection(state->new_connection, state->hovered_pin);
-        array_add(state->connections, state->new_connection);
         state->first_selected_pin = NULL;
         state->is_cable_dragging = 0;
 

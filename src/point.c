@@ -1,41 +1,42 @@
 #include "point.h"
 
 
-void point_print(Point p) {
-    printf("(%d, %d)\n", p.x, p.y);
+void point_print(SDL_Point *p) {
+    printf("(%d, %d)\n", p->x, p->y);
 }
 
-int point_cross(Point a, Point b) {
-    return a.x * b.y - a.y * b.x;
+int point_cross(SDL_Point *a, SDL_Point *b) {
+    return a->x * b->y - a->y * b->x;
 }
 
-Point point_add(Point a, Point b) {
-    Point res = {a.x + b.x, a.y + b.y};
+SDL_Point point_add(SDL_Point *a, SDL_Point *b) {
+    SDL_Point res = {a->x + b->x, a->y + b->y};
     return res;
 }
 
-Point point_subtract(Point a, Point b) {
-    Point res = {a.x - b.x, a.y - b.y};
+SDL_Point point_subtract(SDL_Point *a, SDL_Point *b) {
+    SDL_Point res = {a->x - b->x, a->y - b->y};
     return res;
 }
 
-Point point_multiply(Point a, double k) {
-    Point res = {(int)(a.x * k), (int)(a.y * k)};
+SDL_Point point_multiply(SDL_Point *a, double k) {
+    SDL_Point res = {(int)(a->x * k), (int)(a->y * k)};
     return res;
 }
 
-Point point_divide(Point a, double k) {
-    Point res = {(int)(a.x / k), (int)(a.y / k)};
+SDL_Point point_divide(SDL_Point *a, double k) {
+    SDL_Point res = {(int)(a->x / k), (int)(a->y / k)};
     return res;
 }
 
-
-int point_orient(Point a, Point b, Point c) {
-    return point_cross(point_subtract(b, a), point_subtract(c, a));
+int point_orient(SDL_Point *a, SDL_Point *b, SDL_Point *c) {
+    SDL_Point ab = point_subtract(b, a);
+    SDL_Point ac = point_subtract(c, a);
+    return point_cross(&ab, &ac);
 }
 
 // check if two segments lines intersect
-int segment_intersection(Point a, Point b, Point c, Point d, Point *out) {
+int segment_intersection(SDL_Point *a, SDL_Point *b, SDL_Point *c, SDL_Point *d, SDL_Point *out) {
     double oa = point_orient(c, d, a);
     double ob = point_orient(c, d, b);
     double oc = point_orient(a, b, c);
@@ -44,9 +45,9 @@ int segment_intersection(Point a, Point b, Point c, Point d, Point *out) {
     // Proper intersection exists iff signs are opposite
     if (oa * ob < 0 && oc * od < 0) {
         double t = oa / (oa - ob);
-        Point diff = point_subtract(b, a);
-        Point scaled = point_multiply(diff, t);
-        *out = point_add(a, scaled);
+        SDL_Point diff = point_subtract(b, a);
+        SDL_Point scaled = point_multiply(&diff, t);
+        *out = point_add(a, &scaled);
         return 1;
     }
     return 0;

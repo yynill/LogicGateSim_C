@@ -8,13 +8,25 @@ Connection *start_connection(Pin *pin1) {
     con->p1 = pin1;
     con->p2 = NULL;
     con->state = 0;
-    con->points = array_create(sizeof(SDL_Point));
+    con->points = array_create(4);
+    if (con->points == NULL) {
+        free(con);
+        return NULL;
+    }
 
     return con;
 }
 
 void finish_conection(Connection *con, Pin *pin2) {
+    assert(con != NULL);
+    assert(pin2 != NULL);
+
     con->p2 = pin2;
+
+    while (con->points->size < 4) {
+        add_connection_point(con, pin2->x + pin2->parent_node->rect.x, pin2->y + pin2->parent_node->rect.y);
+    }
+
     propagate_state(con);
     correct_connection_points(con);
 }
@@ -132,14 +144,14 @@ void propagate_state(Connection *con) {
     con->state = out_pin->state;
 }
 
-void connection_free(Connection *con) {
-    if (con == NULL) return;
+void free_connection(Connection *con) {
+    assert(con != NULL);
 
     if (con->points != NULL) {
-        array_free_with_elements(con->points);
+        array_free(con->points);
+        con->points = NULL;
     }
-
-    free(con);
+    free(con); 
 }
 
 void print_connection(Connection *con) {
@@ -172,7 +184,7 @@ void print_connection(Connection *con) {
     for (int i = 0; i < con->points->size; i++)
     {
         SDL_Point *point = (SDL_Point *)array_get(con->points, i);
-        printf("    Point %d (x: %d, y: %d)\n", i, point->x, point->y);
+        printf("    SDL_Point %d (x: %d, y: %d)\n", i, point->x, point->y);
     }
     
     printf("--------------------------\n");

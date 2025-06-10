@@ -1,17 +1,13 @@
 
 #include <stdio.h>
+#include <SDL2/SDL.h>
 
-typedef struct Point
-{
-    int x;
-    int y;
-} Point;
 
-void point_print(Point p);
-int point_cross(Point a, Point b);
-Point point_add(Point a, Point b);
-Point point_subtract(Point a, Point b);
-Point point_multiply(Point a, double k);
-Point point_divide(Point a, double k);
-int point_orient(Point a, Point b, Point c);
-int segment_intersection(Point a, Point b, Point c, Point d, Point *out);
+void point_print(SDL_Point *p);
+int point_cross(SDL_Point *a, SDL_Point *b);
+SDL_Point point_add(SDL_Point *a, SDL_Point *b);
+SDL_Point point_subtract(SDL_Point *a, SDL_Point *b);
+SDL_Point point_multiply(SDL_Point *a, double k);
+SDL_Point point_divide(SDL_Point *a, double k);
+int point_orient(SDL_Point *a, SDL_Point *b, SDL_Point *c);
+int segment_intersection(SDL_Point *a, SDL_Point *b, SDL_Point *c, SDL_Point *d, SDL_Point *out);

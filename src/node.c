@@ -31,7 +31,7 @@ Node *create_node(int num_inputs, int num_outputs, Operation op, SDL_Rect rect, 
 
     node->outputs = array_create(2);
     if (!node->outputs) {
-        array_free_with_elements(node->inputs);
+        array_free(node->inputs);
         return 0;
     }
 
@@ -59,6 +59,22 @@ Node *create_node(int num_inputs, int num_outputs, Operation op, SDL_Rect rect, 
     run_node(node);
 
     return node;
+}
+
+void free_node(Node *node) {
+    assert(node != NULL);
+
+    if (node->inputs != NULL) {
+        array_free(node->inputs);
+        node->inputs = NULL;
+    }
+
+    if (node->outputs != NULL) {
+        array_free(node->outputs);
+        node->outputs = NULL;
+    }
+
+    free(node);
 }
 
 void run_node(Node *node)

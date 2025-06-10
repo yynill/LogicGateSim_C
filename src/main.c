@@ -7,7 +7,6 @@
 
 int main() {
     SimulationState *state = simulation_init();
-    printf("Size of struct SimulationState: %zu bytes\n", sizeof(struct SimulationState));
     RenderContext *context = init_renderer();
 
     if (!state || !context) {
@@ -23,7 +22,11 @@ int main() {
         if (state->should_reset) {
             simulation_cleanup(state);
             state = simulation_init();
-            continue; 
+            if (!state) {
+                printf("Failed to reinitialize simulation\n");
+                break;
+            }
+            continue;
         }
 
         simulation_update(state);

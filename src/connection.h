@@ -28,6 +28,6 @@ void correct_connection_points(Connection *con);
 void update_connection_points(SimulationState *state, Connection *con);
 
 void print_connection(Connection *con);
-void connection_free(Connection *con);
+void free_connection(Connection *con);
 
 #endif // CONNECTION_H

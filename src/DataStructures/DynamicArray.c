@@ -21,14 +21,18 @@ DynamicArray *array_create(int init_capacity) {
     return new_array;
 }
 
-void array_free_with_elements(DynamicArray *arr) {
+void array_free(DynamicArray *arr) {
+    if (arr == NULL) return;
+
     for (int i = 0; i < arr->size; i++) {
-        free(arr->data[i]);
+        if (arr->data[i] != NULL) {
+            free(arr->data[i]);
+            arr->data[i] = NULL;
+        }
     }
     free(arr->data);
     free(arr);
 }
-
 
 void array_clear(DynamicArray *arr) {
     assert(arr != NULL);

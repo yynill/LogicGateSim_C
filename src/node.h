@@ -63,5 +63,5 @@ void run_node(Node *node);
 
 Pin *create_pin(int x, int y, int ii, Node *parent_node);
 Node *create_node(int num_inputs, int num_outputs, Operation op, SDL_Rect rect, const char *name);
-
+void free_node(Node *node);
 #endif // NODE_H
