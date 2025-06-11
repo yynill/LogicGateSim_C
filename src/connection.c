@@ -155,6 +155,8 @@ void free_connection(Connection *con) {
 }
 
 void print_connection(Connection *con) {
+    assert(con != NULL);
+
     if (!con || !con->p1 || !con->p2) {
         printf("Invalid connection (NULL pointer)\n");
         return;

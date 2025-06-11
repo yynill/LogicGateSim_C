@@ -78,9 +78,9 @@ RenderContext *init_renderer()
         return NULL;
     }
 
-    assert(context->window != NULL && "Window must be created");
-    assert(context->renderer != NULL && "Renderer must be created");
-    assert(context->font != NULL && "Font must be loaded");
+    assert(context->window != NULL);
+    assert(context->renderer != NULL);
+    assert(context->font != NULL);
 
     return context;
 }
@@ -124,7 +124,7 @@ void world_to_screen(SimulationState *state, float world_x, float world_y, int *
 void render_text(RenderContext *context, const char *text, int x, int y, SDL_Color color, float zoom) {
     assert(context != NULL);
     assert(text != NULL);
-    assert(context->font != NULL && "Font must be loaded for text rendering");
+    assert(context->font != NULL);
 
     if (zoom < 0.8) return;
     
@@ -191,8 +191,8 @@ void render_top_bar(RenderContext *context) {
 void render_button(RenderContext *context, Button *button) {
     assert(context != NULL);
     assert(button != NULL);
-    assert(button->name != NULL && "Button must have a valid image path");
-    assert(button->rect.w > 0 && button->rect.h > 0 && "Button dimensions must be positive");
+    assert(button->name != NULL);
+    assert(button->rect.w > 0 && button->rect.h > 0);
 
     int text_width, text_height;
     if (strncmp(button->name, "/", 1) == 0) {
@@ -401,21 +401,35 @@ void render_connection(RenderContext *context, Connection *con, SimulationState 
     }
 }
 
+void render_selection_box(RenderContext *context, SimulationState *sim_state) {
+    assert(context != NULL);
+    assert(sim_state != NULL);
+
+    SDL_Renderer *renderer = context->renderer;
+    assert(renderer != NULL);
+
+    SDL_SetRenderDrawColor(renderer, 120, 120, 120, 50);
+    SDL_RenderFillRect(renderer, &sim_state->selection_box);
+
+    SDL_SetRenderDrawColor(renderer, 245, 245, 245, 255);
+    SDL_RenderDrawRect(renderer, &sim_state->selection_box);
+}
 
 void render(RenderContext *context, SimulationState *sim_state)
 {
     assert(context != NULL);
     assert(sim_state != NULL);
-    assert(sim_state->buttons != NULL && "Buttons array must be initialized");
-    assert(sim_state->nodes != NULL && "Nodes array must be initialized");
+    assert(sim_state->buttons != NULL);
+    assert(sim_state->nodes != NULL);
 
     clear_screen(context);
 
     render_knife_stroke(context, sim_state);
+    render_selection_box(context, sim_state);
 
     for (int i = 0; i < sim_state->connections->size; i++) {
         Connection *connection = array_get(sim_state->connections, i);
-        assert(connection != NULL && "Connection must not be NULL");
+        assert(connection != NULL);
 
         render_connection(context, connection, sim_state);
     }
@@ -424,7 +438,7 @@ void render(RenderContext *context, SimulationState *sim_state)
 
     for (int i = 0; i < sim_state->nodes->size; i++) {
         Node *node = array_get(sim_state->nodes, i);
-        assert(node != NULL && "Node must not be NULL");
+        assert(node != NULL);
 
         if (node == sim_state->dragged_node) {
             last_node = node;
@@ -444,7 +458,7 @@ void render(RenderContext *context, SimulationState *sim_state)
         if (strncmp(button->name, "/assets/images/pause.png", 24) == 0 && sim_state->is_paused) { button->name = "/assets/images/play.png"; }
         if (strncmp(button->name, "/assets/images/trash.png", 24) == 0 && !sim_state->dragged_node) { continue; }
 
-        assert(button != NULL && "Button must not be NULL");
+        assert(button != NULL);
         render_button(context, button);
     }
     

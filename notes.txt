@@ -22,16 +22,15 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 
 
 -----------features-----------
-📋 Back (cmd Z) is hard but i heared its like some tree generation - good practice.
-📋 Speed Control (+ - button)
+📋 Back (cmd Z)
 
-✅ camera pan and zoom
+📋 render cables niceer with cubic bezier curve
+📋  1 to many cables (many to 1 is an orgate so dont do that - just use or)
 
-📋 render cables nice with snapping and corners and such + dragging ? (cubic bezier curve)
-    when hovered pin for drag dont detect node. 
-
-📋 select multiple 
-📋 copy paste multiple
+📋 selection bos 
+    move multiple
+    copy paste multiple
+    use this box for creating a group / component
 
 📋 make costum components, where i can double click like node group. costum names. and double click to get out. 
     swiches / lights inside a component shoudl dictade the number of input / output pins of that component and actually represent them - or build costum sschnittstelen
@@ -54,7 +53,7 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 
 
 -----------optimizations-----------
-‼️‼️‼️‼️‼️ refactor code
+‼️‼️‼️‼️‼️ refactor code - i know i should but meh
 📋 is there a way to do this without looping over every pin - yes chunkng for mouse cursor. check and loop only the ones in neighbouring chunks
 📋 don't render stuff that is off screen
 

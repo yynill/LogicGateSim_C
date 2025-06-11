@@ -40,6 +40,9 @@ typedef struct SimulationState
     int drag_offset_x;
     int drag_offset_y;
 
+    int is_selection_box_drawing;
+    SDL_Rect selection_box;
+
     int is_node_dragging;
     int is_camera_dragging;
     int is_cable_dragging;
