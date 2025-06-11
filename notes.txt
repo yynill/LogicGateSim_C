@@ -18,7 +18,7 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 ✅  main(18878,0x20a2f8c40)  malloc: Double free of object 0x137113fe0 (this is a connection)
 ✅  cut cables               zsh: segmentation fault  ./main
 ✅  if nodes on same height, cable connects wierdly. snaps 
-
+🐞 if cable point dragging selection box is also dragging
 
 
 -----------features-----------
@@ -27,9 +27,9 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 📋 render cables niceer with cubic bezier curve
 📋  1 to many cables (many to 1 is an orgate so dont do that - just use or)
 
-📋 selection bos 
+📋 selection box
     move multiple
-    copy paste multiple
+    copy paste multiple (also copy paste single)
     use this box for creating a group / component
 
 📋 make costum components, where i can double click like node group. costum names. and double click to get out. 
@@ -53,7 +53,7 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 
 
 -----------optimizations-----------
-‼️‼️‼️‼️‼️ refactor code - i know i should but meh
+✅ refactor code stil unhappy with
 📋 is there a way to do this without looping over every pin - yes chunkng for mouse cursor. check and loop only the ones in neighbouring chunks
 📋 don't render stuff that is off screen
 
