@@ -37,10 +37,10 @@ void correct_connection_points(Connection *con) {
 
     int size = con->points->size;
     if (size < 2) return;
-    
+
     int p1_y = con->p1->y + con->p1->parent_node->rect.y + (PIN_SIZE / 2);
     int p2_y = con->p2->y + con->p2->parent_node->rect.y + (PIN_SIZE / 2);
-    
+
     for (int i = 0; i < size && i < 2; i++) {
         SDL_Point *point = array_get(con->points, i);
         point->y = p1_y;

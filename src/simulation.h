@@ -31,6 +31,9 @@ typedef struct SimulationState
     Uint32 last_knife_record_time;
     DynamicArray *knife_stroke; // SDL_Point
 
+    DynamicArray *selected_nodes;
+    DynamicArray *selected_connection_points;
+
     int left_mouse_down;
     int right_mouse_down;
     int middle_mouse_down;
@@ -38,6 +41,8 @@ typedef struct SimulationState
     int mouse_x;
     int mouse_y;
     int mouse_wheel;
+
+    // relative position between where you clicked and the objects origin
     int drag_offset_x;
     int drag_offset_y;
 
@@ -57,6 +62,8 @@ typedef struct SimulationState
 
     Node *dragged_node;
     Node *last_dragged_node;
+    int last_node_x;
+    int last_node_y;
 
     SDL_Point *hovered_connection_point;
     SDL_Point *dragging_connection_point;

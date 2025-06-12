@@ -18,6 +18,12 @@ SimulationState *simulation_init(void) {
     state->knife_stroke = array_create(16);
     assert(state->knife_stroke != NULL);
 
+    state->selected_nodes = array_create(16);
+    assert(state->selected_nodes != NULL);
+
+    state->selected_connection_points = array_create(16);
+    assert(state->selected_connection_points != NULL);
+
     init_buttons(state);
 
     state->left_mouse_down = 0;
@@ -49,6 +55,10 @@ SimulationState *simulation_init(void) {
     state->new_connection = NULL;
 
     state->dragged_node = NULL;
+
+    state->last_node_x = 0;
+    state->last_node_y = 0;
+
     state->hovered_pin = NULL;
     state->first_selected_pin = NULL;
 
@@ -91,6 +101,8 @@ void simulation_cleanup(SimulationState *state) {
 
         array_free(state->buttons);
         array_free(state->knife_stroke);
+        array_free(state->selected_nodes);
+        array_free(state->selected_connection_points);
         free(state);
     }
 }
@@ -250,6 +262,7 @@ void update_all_connections(SimulationState *state) {
     {
         Connection *con = array_get(state->connections, i);
         update_connection_points(state, con);
+        correct_connection_points(con);
     }
 }
 
@@ -285,11 +298,31 @@ void cancel_cable_dragging(SimulationState *state) {
     state->is_cable_dragging = 0;
 }
 
-
 void handle_node_dragging(SimulationState *state, float world_x, float world_y) {
     if (state->is_node_dragging && state->dragged_node != NULL) {
-        state->dragged_node->rect.x = world_x - state->drag_offset_x;
-        state->dragged_node->rect.y = world_y - state->drag_offset_y;
+        float new_x = world_x - state->drag_offset_x;
+        float new_y = world_y - state->drag_offset_y;
+        
+        float offset_x = new_x - state->dragged_node->rect.x;
+        float offset_y = new_y - state->dragged_node->rect.y;
+        
+        state->dragged_node->rect.x = new_x;
+        state->dragged_node->rect.y = new_y;
+        
+        for (int i = 0; i < state->selected_nodes->size; i++) {
+            Node *current = array_get(state->selected_nodes, i);
+            if (current != state->dragged_node) { 
+                current->rect.x += offset_x;
+                current->rect.y += offset_y;
+            }
+        }
+
+        for (int i = 0; i < state->selected_connection_points->size; i++) {
+            SDL_Point *current = array_get(state->selected_connection_points, i);
+            current->x += offset_x;
+            current->y += offset_y;
+        }
+        update_all_connections(state);
     }
 }
 
@@ -462,6 +495,35 @@ void delete_node_and_connections(SimulationState *state, Node *node) {
     }
 }
 
+int try_handle_selection(SimulationState *state) {
+    assert(state != NULL);
+    assert(state->nodes != NULL);
+
+    state->selected_nodes->size = 0;
+    state->selected_connection_points->size = 0;
+
+    SDL_Rect selection_box_world;
+    screen_rect_to_world(state, &state->selection_box, &selection_box_world);
+
+    for (int i = 0; i < state->nodes->size; i++) {
+        Node *current = array_get(state->nodes, i);
+        if (SDL_HasIntersection(&selection_box_world, &current->rect)) {
+            array_add(state->selected_nodes, current);
+        }
+    }
+
+    for (int i = 0; i < state->connections->size; i++) {
+        Connection * con = array_get(state->connections, i);
+        for (int j = 0; j < con->points->size; j++) {
+            SDL_Point *current = array_get(con->points, j);
+            if (point_in_rect(current->x, current->y,selection_box_world)) {
+                array_add(state->selected_connection_points, current);
+            }
+        }
+    }
+    return 0;
+}
+
 void process_left_click(SimulationState *state) {
     assert(state != NULL);
     assert(state->nodes != NULL);
@@ -522,9 +584,10 @@ void process_left_mouse_up(SimulationState *state) {
     assert(state != NULL);
     assert(state->buttons != NULL);
 
-    if (try_handle_trash_drop(state)) {} // Node deleted 
-    else if (try_complete_pin_connection(state)) {} // Connection completed 
-    else cancel_cable_dragging(state);
-
+    try_handle_selection(state);
+    try_handle_trash_drop(state);
+    if(!try_complete_pin_connection(state)){
+        cancel_cable_dragging(state);
+    }
     reset_interaction_state(state);
 }

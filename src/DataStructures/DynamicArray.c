@@ -34,11 +34,6 @@ void array_free(DynamicArray *arr) {
     free(arr);
 }
 
-void array_clear(DynamicArray *arr) {
-    assert(arr != NULL);
-    arr->size = 0;
-}
-
 void array_add(DynamicArray *arr, void *element) {
     if (arr->size == arr->capacity) {
         arr->capacity = arr->capacity == 0 ? 4 : arr->capacity * 2;
@@ -47,6 +42,10 @@ void array_add(DynamicArray *arr, void *element) {
     
     arr->data[arr->size++] = element;
 }
+
+// void array_to_array_copy(DynamicArray *arr1, int in, int out, DynamicArray *arr2){
+
+// }
 
 void *array_get(DynamicArray *arr, int index) {
     assert(arr != NULL);

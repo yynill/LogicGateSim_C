@@ -15,11 +15,8 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 
 
 -----------Bugs-----------
-✅  main(18878,0x20a2f8c40)  malloc: Double free of object 0x137113fe0 (this is a connection)
-✅  cut cables               zsh: segmentation fault  ./main
-✅  if nodes on same height, cable connects wierdly. snaps 
-🐞 if cable point dragging selection box is also dragging
-
+🐞 render_cable_dragging doesnt work when zoomed or world dragged 
+🐞 drag and dropping connection points - if only grab part of connection, --> non vertical / horizonal lines
 
 -----------features-----------
 📋 Back (cmd Z)
@@ -28,7 +25,7 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 📋  1 to many cables (many to 1 is an orgate so dont do that - just use or)
 
 📋 selection box
-    move multiple
+    ✅ move multiple + con points
     copy paste multiple (also copy paste single)
     use this box for creating a group / component
 
@@ -48,12 +45,10 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 
 
 -----------structural -----------
-📋 typedef enum { GATE_NULL ...}
 📋 change void functions to int to check if sucessful
 
 
 -----------optimizations-----------
-✅ refactor code stil unhappy with
 📋 is there a way to do this without looping over every pin - yes chunkng for mouse cursor. check and loop only the ones in neighbouring chunks
 📋 don't render stuff that is off screen
 

@@ -120,6 +120,27 @@ void world_to_screen(SimulationState *state, float world_x, float world_y, int *
     *screen_y = (int)((world_y - state->camera_y) * state->camera_zoom);
 }
 
+void screen_rect_to_world(SimulationState *state, const SDL_Rect *screen, SDL_Rect *out_world) {
+    assert(state != NULL);
+    assert(screen != NULL);
+    assert(out_world != NULL);
+
+    float world_x1, world_y1;
+    float world_x2, world_y2;
+
+    // top left corner
+    screen_to_world(state, screen->x, screen->y, &world_x1, &world_y1);
+
+    // botom right cornder
+    screen_to_world(state, screen->x + screen->w, screen->y + screen->h, &world_x2, &world_y2);
+
+    out_world->x = (int)fminf(world_x1, world_x2);
+    out_world->y = (int)fminf(world_y1, world_y2);
+    out_world->w = (int)fabsf(world_x2 - world_x1);
+    out_world->h = (int)fabsf(world_y2 - world_y1);
+}
+
+
 
 void render_text(RenderContext *context, const char *text, int x, int y, SDL_Color color, float zoom) {
     assert(context != NULL);
@@ -232,6 +253,28 @@ void render_knife_stroke(RenderContext *context, SimulationState *sim_state) {
     }
 }
 
+void render_selected_node_outline(RenderContext *context, Node *node, SimulationState *sim_state) {
+    assert(context != NULL);
+    assert(node != NULL);
+    assert(sim_state != NULL);
+
+    SDL_Rect selection_rect = node->rect;
+
+    selection_rect.x -= 2;
+    selection_rect.y -= 2;
+    selection_rect.w += 4;
+    selection_rect.h += 4;
+
+    int new_x, new_y;
+    world_to_screen(sim_state, selection_rect.x, selection_rect.y, &new_x, &new_y);
+    int new_w = (int)(selection_rect.w * sim_state->camera_zoom);
+    int new_h = (int)(selection_rect.h * sim_state->camera_zoom);
+    SDL_Rect dest = {new_x, new_y, new_w, new_h};
+
+    SDL_SetRenderDrawColor(context->renderer, 225, 225, 225, 255);
+    SDL_RenderDrawRect(context->renderer, &dest);
+}
+
 void render_node(RenderContext *context, Node *node, SimulationState *sim_state) {
     assert(context != NULL);
     assert(node != NULL);
@@ -239,11 +282,7 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
 
     SDL_Rect node_rect = node->rect;
     if (sim_state->dragged_node != NULL && sim_state->dragged_node == node) {
-        node_rect.x -= 2;
-        node_rect.y -= 2;
-        node_rect.w += 4;
-        node_rect.h += 4;
-        // todo: move each pin for drag zooom 
+        render_selected_node_outline(context, node, sim_state);
     }
     
     int new_x, new_y;
@@ -251,7 +290,6 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
     int new_w = (int)(node_rect.w * sim_state->camera_zoom);
     int new_h = (int)(node_rect.h * sim_state->camera_zoom);
     SDL_Rect dest = {new_x, new_y, new_w, new_h};
-    
     
     if (strcmp(node->name, "SWITCH") == 0) {
         Pin *p = array_get(node->outputs, 0);
@@ -322,6 +360,7 @@ void render_node(RenderContext *context, Node *node, SimulationState *sim_state)
         }
     }
 }
+
 void render_cable_dragging(RenderContext *context, SimulationState *sim_state) {
     SDL_SetRenderDrawColor(context->renderer, 0, 200, 103, 255);
     int thickness = (int)(4 * sim_state->camera_zoom);
@@ -353,7 +392,6 @@ void render_cable_dragging(RenderContext *context, SimulationState *sim_state) {
         SDL_RenderDrawLine(context->renderer, sx1 + t, sy1, sx2 + t, sy2);
     }
 }
-
 
 void render_connection(RenderContext *context, Connection *con, SimulationState *sim_state) {
     assert(context != NULL);
@@ -396,6 +434,13 @@ void render_connection(RenderContext *context, Connection *con, SimulationState 
 
         if (sim_state->hovered_connection_point == p) SDL_SetTextureColorMod(context->circle_texture, 255, 255, 60);
         else SDL_SetTextureColorMod(context->circle_texture, 0, 0, 30);  
+        for (int i = 0; i < sim_state->selected_connection_points->size; i++) {
+            SDL_Point *current = array_get(sim_state->selected_connection_points, i);
+            if (current == p) {
+                SDL_SetTextureColorMod(context->circle_texture, 225, 225, 225);
+                break;
+            }
+        }
 
         SDL_RenderCopy(context->renderer, context->circle_texture, NULL, &pin_rect);
     }
@@ -435,6 +480,14 @@ void render(RenderContext *context, SimulationState *sim_state)
     }
 
     Node *last_node = NULL;
+
+    for (int i = 0; i < sim_state->selected_nodes->size; i++) {
+        Node *node = array_get(sim_state->selected_nodes, i);
+        assert(node != NULL);
+
+        render_selected_node_outline(context, node, sim_state);
+    }
+
 
     for (int i = 0; i < sim_state->nodes->size; i++) {
         Node *node = array_get(sim_state->nodes, i);

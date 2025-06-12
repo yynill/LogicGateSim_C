@@ -44,5 +44,6 @@ void render_text(RenderContext *context, const char *text, int x, int y, SDL_Col
 void render_img(RenderContext *context, const char *path, SDL_Rect *rect) ;
 void render(RenderContext *context, SimulationState *sim_state);
 void screen_to_world(SimulationState *state, int screen_x, int screen_y, float *world_x, float *world_y);
+void screen_rect_to_world(SimulationState *state, const SDL_Rect *screen, SDL_Rect *out_world);
 
 #endif // RENDERER_H
