@@ -21,9 +21,21 @@ void handle_input(SimulationState *state, SDL_Event *event) {
             handle_mouse_wheel(state, event);
             break;
 
-        case SDL_KEYDOWN:
-            break;
+        case SDL_KEYDOWN: {
+            SDL_Keymod mod = SDL_GetModState();
 
+            if ((mod & KMOD_GUI) && event->key.keysym.sym == SDLK_c) {
+                handle_copy(state);
+            }
+            else if ((mod & KMOD_GUI) && event->key.keysym.sym == SDLK_v) {
+                handle_paste(state);
+            }
+            else if (event->key.keysym.sym == SDLK_BACKSPACE) {
+                handle_backspace(state);
+            }
+            break;
+        }
+        
         case SDL_KEYUP:
             break;
 

@@ -481,14 +481,6 @@ void render(RenderContext *context, SimulationState *sim_state)
 
     Node *last_node = NULL;
 
-    for (int i = 0; i < sim_state->selected_nodes->size; i++) {
-        Node *node = array_get(sim_state->selected_nodes, i);
-        assert(node != NULL);
-
-        render_selected_node_outline(context, node, sim_state);
-    }
-
-
     for (int i = 0; i < sim_state->nodes->size; i++) {
         Node *node = array_get(sim_state->nodes, i);
         assert(node != NULL);
@@ -500,6 +492,13 @@ void render(RenderContext *context, SimulationState *sim_state)
         render_node(context, node, sim_state);
     }
     if (last_node != NULL) render_node(context, last_node, sim_state);
+
+    for (int i = 0; i < sim_state->selected_nodes->size; i++) {
+        Node *node = array_get(sim_state->selected_nodes, i);
+        assert(node != NULL);
+
+        render_selected_node_outline(context, node, sim_state);
+    }
 
     if (sim_state->is_cable_dragging) render_cable_dragging(context, sim_state);
 

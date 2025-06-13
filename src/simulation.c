@@ -80,8 +80,6 @@ void init_buttons(SimulationState *state) {
     array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 3 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/play.png", nullGate, toggle_play_pause));
     array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 2 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/step_forth.png", nullGate, one_step));
     array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), 15, BUTTON_HEIGHT / 2, BUTTON_HEIGHT / 2}, "/assets/images/reload.png", nullGate, reset_sim));
-
-    array_add(state->buttons, create_button((SDL_Rect){WINDOW_WIDTH - 1 * (BUTTON_HEIGHT + 10), WINDOW_HEIGHT - BUTTON_HEIGHT - 10, BUTTON_HEIGHT, BUTTON_HEIGHT}, "/assets/images/trash.png", nullGate, null_function));
 }
 
 void simulation_cleanup(SimulationState *state) {
@@ -101,8 +99,6 @@ void simulation_cleanup(SimulationState *state) {
 
         array_free(state->buttons);
         array_free(state->knife_stroke);
-        array_free(state->selected_nodes);
-        array_free(state->selected_connection_points);
         free(state);
     }
 }
@@ -252,6 +248,9 @@ int try_handle_pin_click(SimulationState *state) {
 }
 
 void start_selection_box(SimulationState *state) {
+    state->selected_nodes->size = 0;
+    state->selected_connection_points->size = 0;
+
     state->is_selection_box_drawing = 1;
     state->selection_box.x = state->mouse_x;
     state->selection_box.y = state->mouse_y;
@@ -291,11 +290,6 @@ void handle_cable_dragging(SimulationState *state) {
             add_connection_point(state->new_connection, state->mouse_x, last->y);
         }
     }
-}
-
-void cancel_cable_dragging(SimulationState *state) {
-    state->first_selected_pin = NULL;
-    state->is_cable_dragging = 0;
 }
 
 void handle_node_dragging(SimulationState *state, float world_x, float world_y) {
@@ -464,18 +458,6 @@ int try_complete_pin_connection(SimulationState *state) {
     return 1;
 }
 
-int try_handle_trash_drop(SimulationState *state) {
-    Button *button = find_button_at_position(state, state->mouse_x, state->mouse_y);
-
-    if (button == NULL) return 0;
-    if (strncmp(button->name, "/assets/images/trash.png", 25) != 0) return 0;
-    if (!state->last_dragged_node) return 0;
-
-    delete_node_and_connections(state, state->last_dragged_node);
-    state->last_dragged_node = NULL;
-    return 1;
-}
-
 void delete_node_and_connections(SimulationState *state, Node *node) {
     for (int i = state->connections->size - 1; i >= 0; i--) {
         Connection *con = array_get(state->connections, i);
@@ -495,12 +477,9 @@ void delete_node_and_connections(SimulationState *state, Node *node) {
     }
 }
 
-int try_handle_selection(SimulationState *state) {
+void handle_selection(SimulationState *state) {
     assert(state != NULL);
     assert(state->nodes != NULL);
-
-    state->selected_nodes->size = 0;
-    state->selected_connection_points->size = 0;
 
     SDL_Rect selection_box_world;
     screen_rect_to_world(state, &state->selection_box, &selection_box_world);
@@ -513,12 +492,24 @@ int try_handle_selection(SimulationState *state) {
     }
 
     for (int i = 0; i < state->connections->size; i++) {
-        Connection * con = array_get(state->connections, i);
+        Connection *con = array_get(state->connections, i);
         for (int j = 0; j < con->points->size; j++) {
             SDL_Point *current = array_get(con->points, j);
-            if (point_in_rect(current->x, current->y,selection_box_world)) {
+            if (point_in_rect(current->x, current->y, selection_box_world)) {
                 array_add(state->selected_connection_points, current);
             }
+        }
+    }
+}
+
+int point_exists_in_array(DynamicArray *points_array, SDL_Point *target) {
+    assert(points_array != NULL);
+    assert(target != NULL);
+
+    for (int i = 0; i < points_array->size; i++) {
+        SDL_Point *point = (SDL_Point *)array_get(points_array, i); 
+        if (point == target) {
+            return 1;
         }
     }
     return 0;
@@ -584,10 +575,152 @@ void process_left_mouse_up(SimulationState *state) {
     assert(state != NULL);
     assert(state->buttons != NULL);
 
-    try_handle_selection(state);
-    try_handle_trash_drop(state);
+    handle_selection(state);
     if(!try_complete_pin_connection(state)){
-        cancel_cable_dragging(state);
+        state->first_selected_pin = NULL;
+        state->is_cable_dragging = 0;
     }
+
     reset_interaction_state(state);
+}
+
+void handle_copy(SimulationState *state) {
+    assert(state != NULL);
+
+    state->clipboard_nodes = flat_copy(state->selected_nodes);
+    state->clipboard_connection_points = flat_copy(state->selected_connection_points);
+}
+
+void paste_offset_rect(SimulationState *state, SDL_Rect *rect) {
+    assert(state != NULL);
+    assert(rect != NULL);
+
+    rect->x += 50;
+    rect->y += 50;
+}
+
+void paste_offset_point(SimulationState *state, SDL_Point *point) {
+    assert(state != NULL);
+    assert(point != NULL);
+
+    point->x += 50;
+    point->y += 50;
+}
+
+DynamicArray* find_fully_selected_connections(DynamicArray *connections, DynamicArray *selected_connection_points) {
+    assert(connections != NULL);
+    assert(selected_connection_points != NULL);
+
+    DynamicArray *fully_selected = array_create(16);
+    
+    for (int i = 0; i < connections->size; i++) {
+        Connection *conn = (Connection *)array_get(connections, i);
+        int all_points_selected = 1;
+        
+        for (int j = 0; j < conn->points->size; j++) {
+            SDL_Point *point = (SDL_Point *)array_get(conn->points, j);
+            
+            if (!point_exists_in_array(selected_connection_points, point)) {
+                all_points_selected = 0;
+                break;
+            }
+        }
+        
+        if (all_points_selected) {
+            array_add(fully_selected, conn);
+        }
+    }
+    
+    return fully_selected;
+}
+
+Pin* find_corresponding_pin(Pin *original_pin, DynamicArray *original_nodes, DynamicArray *pasted_nodes) {
+    for (int i = 0; i < original_nodes->size; i++) {
+        Node *original_node = array_get(original_nodes, i);
+        
+        for (int j = 0; j < original_node->inputs->size; j++) {
+            Pin *pin = array_get(original_node->inputs, j);
+            if (pin == original_pin) {
+                Node *pasted_node = array_get(pasted_nodes, i);
+                return array_get(pasted_node->inputs, j);
+            }
+        }
+        
+        for (int j = 0; j < original_node->outputs->size; j++) {
+            Pin *pin = array_get(original_node->outputs, j);
+            if (pin == original_pin) {
+                Node *pasted_node = array_get(pasted_nodes, i);
+                return array_get(pasted_node->outputs, j);
+            }
+        }
+    }
+    return NULL; 
+}
+
+void handle_paste(SimulationState *state) {
+    assert(state != NULL);
+
+    state->selected_nodes->size = 0;
+    state->selected_connection_points->size = 0;
+
+    for (int i = 0; i < state->clipboard_nodes->size; i++) {
+        Node *current = array_get(state->clipboard_nodes, i);
+        Node *new = create_node(current->inputs->size, current->outputs->size, current->operation, current->rect, current->name);
+        paste_offset_rect(state, &new->rect);
+
+        array_add(state->nodes, new);
+        array_add(state->selected_nodes, new);
+    }
+
+    DynamicArray *matching_connections = find_fully_selected_connections(state->connections, state->clipboard_connection_points);
+    for (int i = 0; i < matching_connections->size; i++) {
+        Connection *original_conn = array_get(matching_connections, i);
+
+        Pin *new_p1 = find_corresponding_pin(original_conn->p1, state->clipboard_nodes, state->selected_nodes);
+        Pin *new_p2 = find_corresponding_pin(original_conn->p2, state->clipboard_nodes, state->selected_nodes);
+        if (new_p1 == NULL || new_p2 == NULL)  continue;
+        
+        Connection *new_conn = malloc(sizeof(Connection));
+        if (new_conn == NULL) continue;
+        
+        new_conn->p1 = new_p1;
+        new_conn->p2 = new_p2;
+        new_conn->state = original_conn->state;
+        new_conn->points = array_create(4);
+        if (new_conn->points == NULL) {
+            free(new_conn);
+            continue;
+        }
+
+        for (int j = 0; j < original_conn->points->size; j++) {
+            SDL_Point *original_point = array_get(original_conn->points, j);
+            
+            SDL_Point *new_point = malloc(sizeof(SDL_Point));
+            if (new_point == NULL) continue;
+            
+            new_point->x = original_point->x;
+            new_point->y = original_point->y;
+            paste_offset_point(state, new_point);
+            
+            array_add(new_conn->points, new_point);
+            array_add(state->selected_connection_points, new_point);
+        }
+
+        propagate_state(new_conn);
+        correct_connection_points(new_conn);
+        update_connection_points(state, new_conn);
+
+        array_add(state->connections, new_conn);
+    }  
+    free(matching_connections);
+} 
+
+void handle_backspace(SimulationState *state) {
+    for (int i = 0; i < state->selected_nodes->size; i++) {
+        Node *node = array_get(state->selected_nodes, i);
+        delete_node_and_connections(state, node);
+        state->last_dragged_node = NULL;
+    }
+    state->selected_nodes->size = 0;
+    state->selected_connection_points->size = 0;
 }

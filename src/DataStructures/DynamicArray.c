@@ -43,10 +43,6 @@ void array_add(DynamicArray *arr, void *element) {
     arr->data[arr->size++] = element;
 }
 
-// void array_to_array_copy(DynamicArray *arr1, int in, int out, DynamicArray *arr2){
-
-// }
-
 void *array_get(DynamicArray *arr, int index) {
     assert(arr != NULL);
     assert(index >= 0 && index < arr->size);
@@ -77,6 +73,15 @@ void array_remove_at(DynamicArray *arr, int index) {
     }
 }
 
+DynamicArray *flat_copy(DynamicArray *from_arr) {
+    assert(from_arr != NULL);
+
+    DynamicArray *to_arr = array_create(from_arr->capacity);
+    for (int i = 0; i < from_arr->size; i++) {
+        array_add(to_arr, from_arr->data[i]);
+    }
+    return to_arr;
+}
 
 void array_print_stats(DynamicArray *arr, const char *label) {
     size_t element_size = sizeof(void*);

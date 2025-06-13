@@ -22,11 +22,11 @@ Build a C-based LogiGate simulator with custom components and a virtual CPU (ofc
 📋 Back (cmd Z)
 
 📋 render cables niceer with cubic bezier curve
-📋  1 to many cables (many to 1 is an orgate so dont do that - just use or)
+✅  1 to many cables (many to 1 is an orgate so dont do that - just use or) - basically already implemented with multible cables.
 
-📋 selection box
+✅ selection box
     ✅ move multiple + con points
-    copy paste multiple (also copy paste single)
+    ✅ copy paste multiple (also copy paste single)
     use this box for creating a group / component
 
 📋 make costum components, where i can double click like node group. costum names. and double click to get out. 

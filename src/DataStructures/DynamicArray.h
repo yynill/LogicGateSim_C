@@ -18,4 +18,6 @@ void *array_get(DynamicArray *arr, int index);
 void array_remove_at(DynamicArray *arr, int index);
 void array_print_stats(DynamicArray *arr, const char *label);
 
+DynamicArray *flat_copy(DynamicArray *from_arr);
+
 #endif

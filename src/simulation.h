@@ -34,6 +34,9 @@ typedef struct SimulationState
     DynamicArray *selected_nodes;
     DynamicArray *selected_connection_points;
 
+    DynamicArray *clipboard_nodes;
+    DynamicArray *clipboard_connection_points;
+
     int left_mouse_down;
     int right_mouse_down;
     int middle_mouse_down;
@@ -86,6 +89,10 @@ void process_right_mouse_up(SimulationState *state);
 void process_right_click(SimulationState *state);
 void process_mouse_motion(SimulationState *state);
 
+void handle_copy(SimulationState *state);
+void handle_paste(SimulationState *state);
+void handle_backspace(SimulationState *state);
+
 void null_function(SimulationState *state, void *function_data);
 void add_node(SimulationState *state, void *function_data);
 void cut_connection(SimulationState *state);
@@ -97,7 +104,6 @@ void start_selection_box(SimulationState *state);
 void update_all_connections(SimulationState *state);
 void handle_selection_box(SimulationState *state);
 void handle_cable_dragging(SimulationState *state);
-void cancel_cable_dragging(SimulationState *state);
 void handle_node_dragging(SimulationState *state, float world_x, float world_y);
 void handle_connection_point(SimulationState *state, float world_x, float world_y);
 void update_pin_hover(SimulationState *state, float world_x, float world_y);
@@ -106,7 +112,6 @@ int try_handle_node_click(SimulationState *state, float world_x, float world_y);
 int try_handle_connection_point_click(SimulationState *state);
 int try_handle_button_click(SimulationState *state);
 int try_handle_pin_click(SimulationState *state);
-int try_handle_trash_drop(SimulationState *state);
 int try_complete_pin_connection(SimulationState *state);
 void delete_node_and_connections(SimulationState *state, Node *node);
 Button *find_button_at_position(SimulationState *state, int screen_x, int screen_y);
