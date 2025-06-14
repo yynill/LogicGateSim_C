@@ -6,6 +6,8 @@ SimulationState *simulation_init(void) {
 
     state->is_running = 1;
 
+    state->popup_state = init_popupstate();
+
     state->nodes = array_create(16);
     assert(state->nodes != NULL);
 
@@ -228,7 +230,7 @@ int try_handle_connection_point_click(SimulationState *state) {
 }
 
 int try_handle_button_click(SimulationState *state) {
-    Button *clicked_button = find_button_at_position(state, state->mouse_x, state->mouse_y);
+    Button *clicked_button = find_button_at_position(state->buttons, state->mouse_x, state->mouse_y);
     if (clicked_button) {
         clicked_button->on_press(state, clicked_button);
         return 1;
@@ -420,9 +422,11 @@ Node *find_node_at_position(SimulationState *state, float x, float y) {
     return NULL;
 }
 
-Button *find_button_at_position(SimulationState *state, int screen_x, int screen_y) {
-    for (int i = 0; i < state->buttons->size; i++) {
-        Button *button = array_get(state->buttons, i);
+Button *find_button_at_position(DynamicArray *buttons, int screen_x, int screen_y) {
+    assert(buttons != NULL);
+
+    for (int i = 0; i < buttons->size; i++) {
+        Button *button = array_get(buttons, i);
         if (point_in_rect(screen_x, screen_y, button->rect)) {
             return button;
         }
@@ -521,6 +525,12 @@ void process_left_click(SimulationState *state) {
     assert(state->buttons != NULL);
 
     if (!state->left_mouse_down) return;
+
+    if (state->popup_state->is_pop)
+    {
+       if(try_handle_popup(state))return;
+    }
+    
 
     float world_x, world_y;
     screen_to_world(state, state->mouse_x, state->mouse_y, &world_x, &world_y);
@@ -716,6 +726,14 @@ void handle_paste(SimulationState *state) {
 } 
 
 void handle_backspace(SimulationState *state) {
+    if(state->popup_state->is_pop) {
+        size_t len = strlen(state->popup_state->name_input.text);
+        if (len > 0) {
+            state->popup_state->name_input.text[len - 1] = '\0';
+        }
+        return;
+    }
+
     for (int i = 0; i < state->selected_nodes->size; i++) {
         Node *node = array_get(state->selected_nodes, i);
         delete_node_and_connections(state, node);
@@ -723,4 +741,42 @@ void handle_backspace(SimulationState *state) {
     }
     state->selected_nodes->size = 0;
     state->selected_connection_points->size = 0;
+}
+
+void handle_group_nodes(SimulationState *state) {
+    printf("group nodes\n");
+
+    // make a input field, where i can type the name in for this node / color? 
+    
+    // delete selcted nodes from array with connections. 
+    // craete component 
+    // count number of switches / lights  --> make so many in / out puts
+    // make a node with the num inputs outputs
+    // paste deleted nodes into tht copmonent 
+    // add internal step function for components that runs them
+
+    // right click coponnet to step into it.
+}
+
+void handle_g_pressed(SimulationState *state) {
+    assert(state != NULL);
+    printf("g presed\n");
+    state->popup_state->is_pop = 1;
+}
+
+void handle_escape(SimulationState *state, void *function_data) {
+    assert(state != NULL);
+    (void)function_data;
+
+    if (state->popup_state->is_pop == 1) state->popup_state->is_pop = 0;
+}
+
+void handle_enter(SimulationState *state, void *function_data) {
+    assert(state != NULL);
+    (void)function_data;
+
+    if (state->popup_state->is_pop == 1) {
+        handle_group_nodes(state);
+        state->popup_state->is_pop = 0;
+    }
 }

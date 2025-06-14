@@ -15,14 +15,17 @@
 #include "point.h"
 #include "button.h"
 #include "connection.h"
+#include "popup_state.h"
 
 typedef struct Connection Connection;
 typedef struct Button Button;
+typedef struct PopupState PopupState;
 
-typedef struct SimulationState
-{
+typedef struct SimulationState {
     int is_running;
     int should_reset;
+
+    PopupState *popup_state;
 
     DynamicArray *nodes;
     DynamicArray *connections;
@@ -92,6 +95,9 @@ void process_mouse_motion(SimulationState *state);
 void handle_copy(SimulationState *state);
 void handle_paste(SimulationState *state);
 void handle_backspace(SimulationState *state);
+void handle_g_pressed(SimulationState *state);
+void handle_escape(SimulationState *state, void *function_data);
+void handle_enter(SimulationState *state, void *function_data);
 
 void null_function(SimulationState *state, void *function_data);
 void add_node(SimulationState *state, void *function_data);
@@ -114,7 +120,7 @@ int try_handle_button_click(SimulationState *state);
 int try_handle_pin_click(SimulationState *state);
 int try_complete_pin_connection(SimulationState *state);
 void delete_node_and_connections(SimulationState *state, Node *node);
-Button *find_button_at_position(SimulationState *state, int screen_x, int screen_y);
+Button *find_button_at_position(DynamicArray *buttons, int screen_x, int screen_y);
 Node *find_node_at_position(SimulationState *state, float x, float y);
 void start_selection_box(SimulationState *state);
 

@@ -4,7 +4,17 @@ void handle_input(SimulationState *state, SDL_Event *event) {
     assert(state != NULL);
     assert(event != NULL);
 
+    if (state->popup_state->is_pop) SDL_StartTextInput();
+    else SDL_StopTextInput();
+
     switch(event->type) {
+        case SDL_TEXTINPUT:
+            if (state->popup_state->is_pop) {
+                strncat(state->popup_state->name_input.text, event->text.text, 
+                        sizeof(state->popup_state->name_input.text) - strlen(state->popup_state->name_input.text) - 1);
+            }
+            break;
+
         case SDL_MOUSEBUTTONDOWN:
             handle_mouse_button_down(state, event);
             break;
@@ -30,8 +40,19 @@ void handle_input(SimulationState *state, SDL_Event *event) {
             else if ((mod & KMOD_GUI) && event->key.keysym.sym == SDLK_v) {
                 handle_paste(state);
             }
+            else if ((mod & KMOD_GUI) && event->key.keysym.sym == SDLK_g) {
+                handle_g_pressed(state);
+            }
             else if (event->key.keysym.sym == SDLK_BACKSPACE) {
                 handle_backspace(state);
+            }
+            else if (event->key.keysym.sym == SDLK_ESCAPE) {
+                void *nothing = NULL;
+                handle_escape(state, nothing);
+            }
+            else if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_KP_ENTER) {
+                void *nothing = NULL;
+                handle_enter(state, nothing);
             }
             break;
         }

@@ -19,6 +19,12 @@
         "string_view": "c",
         "unordered_map": "c",
         "vector": "c",
-        "point.h": "c"
+        "point.h": "c",
+        "node.h": "c",
+        "component.h": "c",
+        "assert.h": "c",
+        "ios": "c",
+        "simulation.h": "c",
+        "popup_state.h": "c"
     }
 }

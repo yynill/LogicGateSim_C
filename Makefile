@@ -22,7 +22,9 @@ MAIN_SRC = src/main.c \
            src/input_handler.c \
            src/renderer.c \
 		   src/node.c \
+		   src/node_group.c \
 		   src/connection.c \
+		   src/popup_state.c \
 		   src/button.c \
 		   src/point.c
 

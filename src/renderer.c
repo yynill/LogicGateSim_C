@@ -140,17 +140,14 @@ void screen_rect_to_world(SimulationState *state, const SDL_Rect *screen, SDL_Re
     out_world->h = (int)fabsf(world_y2 - world_y1);
 }
 
-
-
 void render_text(RenderContext *context, const char *text, int x, int y, SDL_Color color, float zoom) {
     assert(context != NULL);
     assert(text != NULL);
     assert(context->font != NULL);
 
-    if (zoom < 0.8) return;
-    
+    if (zoom < 0.8f) return;
 
-    SDL_Surface *surface = TTF_RenderText_Solid(context->font, text, color);
+    SDL_Surface *surface = TTF_RenderText_Blended(context->font, text, color);  // <- switched to Blended
     if (!surface) {
         printf("Failed to render text! TTF_Error: %s\n", TTF_GetError());
         return;
@@ -167,7 +164,8 @@ void render_text(RenderContext *context, const char *text, int x, int y, SDL_Col
         x,
         y,
         (int)(surface->w * zoom),
-        (int)(surface->h * zoom)};
+        (int)(surface->h * zoom)
+    };
 
     SDL_RenderCopy(context->renderer, texture, NULL, &rect);
 
@@ -453,11 +451,42 @@ void render_selection_box(RenderContext *context, SimulationState *sim_state) {
     SDL_Renderer *renderer = context->renderer;
     assert(renderer != NULL);
 
-    SDL_SetRenderDrawColor(renderer, 120, 120, 120, 50);
+    SDL_SetRenderDrawColor(renderer, 120, 120, 120, 255);
     SDL_RenderFillRect(renderer, &sim_state->selection_box);
 
     SDL_SetRenderDrawColor(renderer, 245, 245, 245, 255);
     SDL_RenderDrawRect(renderer, &sim_state->selection_box);
+}
+
+void render_text_input(RenderContext *context, TextInput *input) {
+    SDL_SetRenderDrawColor(context->renderer, 255, 255, 255, 255);
+    SDL_RenderFillRect(context->renderer, &input->rect);
+
+    if (strlen(input->text) > 0) {
+        SDL_Color textColor = {0, 0, 0, 255};
+        render_text(context, input->text, input->rect.x + 5, input->rect.y + 5, textColor, 1.0f);
+    }
+}
+
+void render_node_group_popup(RenderContext *context, SimulationState *sim_state) {
+    assert(context != NULL);
+    assert(sim_state != NULL);
+    assert(sim_state->popup_state != NULL);
+
+    SDL_SetRenderDrawBlendMode(context->renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(context->renderer, 0, 0, 0, 80);
+    SDL_Rect fullscreen_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
+    SDL_RenderFillRect(context->renderer, &fullscreen_rect);
+    
+    PopupState *pop_state = sim_state->popup_state;
+    SDL_SetRenderDrawColor(context->renderer, 30, 30, 30, 255);
+    SDL_RenderFillRect(context->renderer, &pop_state->rect);
+
+    for (int i = 0; i < pop_state->buttons->size; i++) {
+        Button * btn = array_get(pop_state->buttons, i);
+        render_button(context, btn);
+    }
+    render_text_input(context, &pop_state->name_input);
 }
 
 void render(RenderContext *context, SimulationState *sim_state)
@@ -513,6 +542,8 @@ void render(RenderContext *context, SimulationState *sim_state)
         assert(button != NULL);
         render_button(context, button);
     }
+
+    if (sim_state->popup_state->is_pop) render_node_group_popup(context, sim_state);
     
     present_screen(context);
 }

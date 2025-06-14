@@ -19,6 +19,7 @@ int main() {
         while (SDL_PollEvent(&event)) {
             handle_input(state, &event);
         }
+
         if (state->should_reset) {
             simulation_cleanup(state);
             state = simulation_init();

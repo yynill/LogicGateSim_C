@@ -9,8 +9,7 @@
 typedef int (Operation)(int, int);
 typedef struct SimulationState SimulationState;
 
-typedef struct Node
-{
+typedef struct Node {
     DynamicArray *inputs;  // pins
     DynamicArray *outputs; // pins
     Operation *operation;
